@@ -1,0 +1,18 @@
+{
+  "active": true,
+  "current_phase": "interview",
+  "interview_id": "walk3d-001",
+  "type": "greenfield",
+  "initial_idea": "귀여운 3D 캐릭터가 무한히 펼쳐지는 3D 마을을 WASD로 걸어다닐 수 있는 웹 게임",
+  "rounds": [],
+  "current_ambiguity": 1,
+  "threshold": 0.2,
+  "challenge_modes_used": [],
+  "ontology_snapshots": [],
+  "_meta": {
+    "mode": "deep-interview",
+    "sessionId": null,
+    "updatedAt": "2026-04-17T01:26:25.971Z",
+    "updatedBy": "state_write_tool"
+  }
+}

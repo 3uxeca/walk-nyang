@@ -1,0 +1,9 @@
+# Walk3D Ralph Progress Log
+
+## Session Start: 2026-04-17
+## Plan: .omc/plans/walk3d-village-game.md
+## PRD: .omc/prd.json (12 user stories)
+
+---
+
+## Iteration 1 - Phase 1 시작

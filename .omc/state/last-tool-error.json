@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"git status && git remote -v\",\"description\":\"Check git status and remotes\"}",
+  "error": "Exit code 128\nfatal: (현재 폴더 또는 상위 폴더 중 일부가) 깃 저장소가 아닙니다: .git",
+  "timestamp": "2026-04-20T08:30:44.749Z",
+  "retry_count": 1
+}
