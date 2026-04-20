@@ -27,11 +27,29 @@ export function buildChunkMesh(data: ChunkData, scene: THREE.Scene): THREE.Group
 
   const regionId = regionForChunk(data.cx, data.cz)
   const palette = getRegionPalette(regionId)
+  const base = new THREE.Color(palette.ground)
   const groundGeo = new THREE.PlaneGeometry(CHUNK_SIZE, CHUNK_SIZE)
-  const groundMat = new THREE.MeshToonMaterial({ color: palette.ground })
+  const groundMat = new THREE.ShaderMaterial({
+    uniforms: { baseColor: { value: base } },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }
+    `,
+    fragmentShader: `
+      uniform vec3 baseColor;
+      varying vec2 vUv;
+      void main() {
+        float gx = mod(vUv.x * 10.0, 1.0);
+        float gz = mod(vUv.y * 10.0, 1.0);
+        float line = step(0.91, max(gx, gz));
+        vec3 col = mix(baseColor, baseColor * 0.86, line * 0.55);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+  })
   const groundMesh = new THREE.Mesh(groundGeo, groundMat)
   groundMesh.rotation.x = -Math.PI / 2
-  groundMesh.position.set(data.cx * CHUNK_SIZE, 0.005, data.cz * CHUNK_SIZE)
+  groundMesh.position.set((data.cx + 0.5) * CHUNK_SIZE, 0.0, (data.cz + 0.5) * CHUNK_SIZE)
   groundMesh.receiveShadow = true
   group.add(groundMesh)
 
@@ -87,7 +105,7 @@ export function buildProxyMesh(cx: number, cz: number, scene: THREE.Scene): THRE
   const geo = new THREE.BoxGeometry(CHUNK_SIZE, 0.5, CHUNK_SIZE)
   const mat = new THREE.MeshToonMaterial({ color: 0xcccccc, transparent: true, opacity: 0.45 })
   const mesh = new THREE.Mesh(geo, mat)
-  mesh.position.set(cx * CHUNK_SIZE, 0.25, cz * CHUNK_SIZE)
+  mesh.position.set((cx + 0.5) * CHUNK_SIZE, 0.25, (cz + 0.5) * CHUNK_SIZE)
   group.add(mesh)
   scene.add(group)
   return group
