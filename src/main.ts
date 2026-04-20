@@ -11,11 +11,13 @@ import { HUD } from './ui/HUD'
 import { RegionUnlockFX } from './ui/RegionUnlockFX'
 import { ControlsHUD } from './ui/ControlsHUD'
 import { CollectFX } from './game/CollectFX'
+import { HeartFX } from './game/HeartFX'
 import { playMeow, playJump, startPurring, stopPurring, playFootstep, playDashWhoosh } from './game/SoundSystem'
 import { getTerrainHeight } from './world/Terrain'
 import { CHUNK_SIZE } from './world/ChunkGenerator'
 import { checkBuildingCollision } from './world/BuildingColliders'
 import { AssetManager, ASSET_MANIFEST } from './assets/AssetManager'
+import { SkySystem } from './world/SkySystem'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
 
@@ -28,6 +30,8 @@ let autosaveTimer: ReturnType<typeof setInterval> | null = null
 let hud: HUD | null = null
 let controlsHUD: ControlsHUD | null = null
 let collectFX: CollectFX | null = null
+let heartFX: HeartFX | null = null
+let skySystem: SkySystem | null = null
 let verticalVelocity = 0
 let isOnGround = true
 let idleTime = 0
@@ -55,8 +59,9 @@ async function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   const scene = new THREE.Scene()
-  scene.fog = new THREE.Fog(0xd4e9ff, 30, 100)
-  scene.background = new THREE.Color(0xd4e9ff)
+  scene.fog = new THREE.Fog(0xb8d9f0, 40, 110)
+  scene.background = new THREE.Color(0xb8d9f0)
+  skySystem = new SkySystem(scene)
 
   const thirdPersonCamera = new ThirdPersonCamera(window.innerWidth / window.innerHeight)
 
@@ -123,6 +128,7 @@ async function init() {
   )
 
   collectFX = new CollectFX(scene)
+  heartFX = new HeartFX(scene)
 
   chunkManager = new ChunkManager(scene)
   chunkManager.setRegionManager(regionManager)
@@ -266,11 +272,12 @@ async function init() {
 
     const moving = controller!.isMoving()
 
-    // Purring + dance: start after 5s idle, stop on movement
+    // Purring + dance + hearts: start after 5s idle, stop on movement
     if (moving || !isOnGround || isDashing) {
       idleTime = 0
       if (isPurring) { stopPurring(); isPurring = false }
       if (isDancing) { isDancing = false; character.stopSpecial() }
+      heartFX!.clear()
     } else {
       idleTime += delta
       if (idleTime >= 5) {
@@ -278,6 +285,7 @@ async function init() {
         if (!isDancing) { character.playDance(); isDancing = true }
       }
     }
+    heartFX!.update(delta, isDancing, charPos.x, charPos.y, charPos.z, thirdPersonCamera.camera.position)
 
     // Footsteps while walking on ground (faster interval when dashing)
     if (moving && isOnGround) {
@@ -295,6 +303,7 @@ async function init() {
     chunkManager!.processSwaps(1)
     itemSystem!.update(delta, charPos.x, charPos.z)
     collectFX!.update(delta)
+    skySystem!.update(delta)
 
     // Building occlusion: fade meshes between camera and cat
     const camPos = thirdPersonCamera.camera.position
@@ -350,6 +359,9 @@ if (import.meta.hot) {
     if (hud) hud.dispose()
     if (controlsHUD) controlsHUD.dispose()
     if (collectFX) collectFX.dispose()
+    if (heartFX) heartFX.dispose()
+    if (skySystem) skySystem.dispose()
+    skySystem = null
     if (_onResize) window.removeEventListener('resize', _onResize)
     AssetManager.reset()
     animationId = null
@@ -361,6 +373,7 @@ if (import.meta.hot) {
     hud = null
     controlsHUD = null
     collectFX = null
+    heartFX = null
     _onResize = null
     verticalVelocity = 0
     isOnGround = true
