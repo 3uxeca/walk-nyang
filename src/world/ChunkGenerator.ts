@@ -50,8 +50,8 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
     for (let gx = 0; gx < 4; gx++) {
       const localX = (gx - 1.5) * GRID
       const localZ = (gz - 1.5) * GRID
-      const worldX = cx * CHUNK_SIZE + localX
-      const worldZ = cz * CHUNK_SIZE + localZ
+      const worldX = cx * CHUNK_SIZE + CHUNK_SIZE / 2 + localX
+      const worldZ = cz * CHUNK_SIZE + CHUNK_SIZE / 2 + localZ
 
       // 도로 셀 (중앙 행/열) 건너뜀 — 한 축이라도 도로면 스킵
       const isRoadX = gx === 1 || gx === 2
@@ -71,11 +71,15 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
     }
   }
 
-  // 소품 생성 (3-5개, 도로 셀 외 위치)
+  // 소품 생성 (3-5개, 도로 밴드 제외, 청크 내부에만)
+  const PROP_ROAD_BAND = 7
   const propCount = 3 + Math.floor(rng() * 3)
   for (let i = 0; i < propCount; i++) {
-    const px = cx * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.7
-    const pz = cz * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.7
+    const px = (cx + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.7
+    const pz = (cz + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.7
+    const lx = Math.abs(px - (cx + 0.5) * CHUNK_SIZE)
+    const lz = Math.abs(pz - (cz + 0.5) * CHUNK_SIZE)
+    if (lx < PROP_ROAD_BAND || lz < PROP_ROAD_BAND) continue
     props.push({
       type: PROP_TYPES[Math.floor(rng() * PROP_TYPES.length)],
       x: px,
@@ -88,8 +92,8 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
   const itemTypes: ('star' | 'coin' | 'gem')[] = ['star', 'coin', 'gem']
   const itemCount = 2 + Math.floor(rng() * 3)
   for (let i = 0; i < itemCount; i++) {
-    const ix = cx * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
-    const iz = cz * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
+    const ix = (cx + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
+    const iz = (cz + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
     items.push({
       id: `${cx},${cz},${i}`,
       x: ix,

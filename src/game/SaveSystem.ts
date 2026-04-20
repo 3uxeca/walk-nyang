@@ -1,6 +1,6 @@
 export const SAVE_KEY = 'walk3d.save.v1'
 export const CURRENT_VERSION = 1
-export const CURRENT_ITEM_SCHEMA_VERSION = 1
+export const CURRENT_ITEM_SCHEMA_VERSION = 2
 
 export interface SaveData {
   version: number
