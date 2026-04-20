@@ -13,7 +13,7 @@ const PROP_ASSET_KEYS: Record<string, string> = {
 const PROP_GLTF_SCALE: Record<string, number> = {
   tree:    4.0,
   flower:  0.4,
-  lamp:    3.5,
+  lamp:    5.0,
   bench:   2.2,
   mailbox: 0.9,
 }

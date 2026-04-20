@@ -55,14 +55,10 @@ function createItemMesh(type: 'star' | 'coin' | 'gem'): THREE.Group {
 
   } else if (type === 'coin') {
     const mat = new THREE.MeshStandardMaterial({ color: 0xffc72c, emissive: 0xff8c00, emissiveIntensity: 0.3, metalness: 0.9, roughness: 0.15 })
-    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.1, 24), mat)
+    const disc = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 0.12, 24), mat)
     disc.rotation.x = Math.PI / 2
     disc.castShadow = true
     group.add(disc)
-    const rimMat = new THREE.MeshStandardMaterial({ color: 0xffdf60, metalness: 1.0, roughness: 0.1 })
-    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.055, 8, 24), rimMat)
-    rim.rotation.x = Math.PI / 2
-    group.add(rim)
 
   } else {
     const mat = new THREE.MeshStandardMaterial({ color: 0xcc77ff, emissive: 0x8833dd, emissiveIntensity: 0.6, metalness: 0.2, roughness: 0.05, transparent: true, opacity: 0.88 })
