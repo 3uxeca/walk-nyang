@@ -6,16 +6,16 @@ function injectStyles() {
   s.id = TOAST_STYLE_ID
   s.textContent = `
     @keyframes w3d-toast-in {
-      0%   { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.9); }
-      60%  { transform: translateX(-50%) translateY(-2px) scale(1.04); }
-      100% { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1); }
+      0%   { opacity: 0; transform: translateX(-50%) translateY(-16px) scale(0.9); }
+      60%  { transform: translateX(-50%) translateY(2px) scale(1.04); }
+      100% { opacity: 1; transform: translateX(-50%) translateY(0)     scale(1); }
     }
     @keyframes w3d-toast-out {
-      to { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.94); }
+      to { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.94); }
     }
     .w3d-toast-generic {
       position: fixed;
-      bottom: 110px;
+      top: 130px;
       left: 50%;
       transform: translateX(-50%);
       background: rgba(64, 48, 36, 0.86);
