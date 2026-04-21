@@ -45,10 +45,20 @@ export class AssetManager {
 
   clone(key: string): THREE.Group {
     const entry = this.models.get(key)!
-    if (entry.isSkinned) {
-      return skeletonClone(entry.scene) as THREE.Group
-    }
-    return entry.scene.clone()
+    const cloned = entry.isSkinned
+      ? (skeletonClone(entry.scene) as THREE.Group)
+      : entry.scene.clone()
+    // 각 클론이 독립된 머티리얼을 갖도록 깊은 복제 — 한 인스턴스의 opacity 변경이 다른 인스턴스에 전염되지 않게
+    cloned.traverse(obj => {
+      if (obj instanceof THREE.Mesh) {
+        if (Array.isArray(obj.material)) {
+          obj.material = obj.material.map(m => m.clone())
+        } else if (obj.material) {
+          obj.material = obj.material.clone()
+        }
+      }
+    })
+    return cloned
   }
 
   getAnimations(key: string): THREE.AnimationClip[] {

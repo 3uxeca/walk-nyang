@@ -85,14 +85,6 @@ async function init() {
   rimLight.position.set(-20, 30, -20)
   scene.add(rimLight)
 
-  const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(300, 300),
-    new THREE.MeshToonMaterial({ color: 0xa8d8a8 })
-  )
-  ground.rotation.x = -Math.PI / 2
-  ground.receiveShadow = true
-  scene.add(ground)
-
   const character = new Character()
   character.setPosition(0, 0, 0)
   scene.add(character.group)
