@@ -207,6 +207,9 @@ async function init() {
     animationId = requestAnimationFrame(animate)
     const delta = Math.min(clock.getDelta(), 0.05)
 
+    // 매 프레임 입력 소스들을 OR-reduce해서 controller.input에 반영
+    controller!.update(delta)
+
     const isDashing = controller!.input.dash && controller!.isMoving()
     if (isDashing && !wasDashing) playDashWhoosh()
     wasDashing = isDashing
