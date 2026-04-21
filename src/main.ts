@@ -248,16 +248,14 @@ async function init() {
       chunkBlocked = true
     }
 
-    // Block movement into locked regions, but allow travel along the road band
+    // 잠긴 지역은 하드 블록 — 이전엔 road band 예외가 있었으나 플레이 경험상
+    // 잠긴 지역으로의 진입 자체를 막는 편이 직관적.
     if (!chunkBlocked && regionManager.getChunkState(targetCX, targetCZ) === 'locked') {
-      const ROAD_HALF = 9
-      const lx = ((charPos.x % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE - CHUNK_SIZE / 2
-      const lz = ((charPos.z % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE - CHUNK_SIZE / 2
-      const onRoad = Math.abs(lx) <= ROAD_HALF || Math.abs(lz) <= ROAD_HALF
-      if (!onRoad) {
+      const prevState = regionManager.getChunkState(prevCX, prevCZ)
+      // 플레이어가 이미 잠긴 청크 안에 갇히는 기묘한 상황(세이브 복원 등)은 허용 — 그 외엔 차단
+      if (prevState !== 'locked') {
         charPos.x = prevX
         charPos.z = prevZ
-        // 경계 이탈 시도 알림 (쓰로틀됨)
         toast!.show('아직 잠겨있는 지역이에요', '🔒', 'locked-region', 2000)
       }
     }
