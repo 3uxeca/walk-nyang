@@ -71,19 +71,22 @@ export class AssetManager {
   }
 }
 
+// 정적 에셋 경로는 Vite의 BASE_URL을 prefix로 붙여 GitHub Pages 서브패스 호스팅을 지원
+const B = import.meta.env.BASE_URL  // dev: '/', prod: '/walk-nyang/'
+
 export const ASSET_MANIFEST: { key: string; url: string }[] = [
-  { key: 'cat',            url: '/models/cat/Cat.glb' },
-  { key: 'building_house', url: '/models/town/suburban/house.glb' },
-  { key: 'building_shop',  url: '/models/town/commercial/shop.glb' },
-  { key: 'building_cafe',  url: '/models/town/commercial/cafe.glb' },
-  { key: 'building_apt',   url: '/models/town/suburban/apartment.glb' },
-  { key: 'building_tower', url: '/models/town/commercial/tower.glb' },
-  { key: 'prop_tree',      url: '/models/props/tree.glb' },
-  { key: 'prop_flower',    url: '/models/props/flower.glb' },
-  { key: 'prop_lamp',      url: '/models/props/lamp.glb' },
-  { key: 'prop_bench',     url: '/models/props/bench.glb' },
-  { key: 'prop_mailbox',   url: '/models/props/mailbox.glb' },
-  { key: 'item_star',      url: '/models/items/star.glb' },
-  { key: 'item_coin',      url: '/models/items/coin.glb' },
-  { key: 'item_gem',       url: '/models/items/gem.glb' },
+  { key: 'cat',            url: `${B}models/cat/Cat.glb` },
+  { key: 'building_house', url: `${B}models/town/suburban/house.glb` },
+  { key: 'building_shop',  url: `${B}models/town/commercial/shop.glb` },
+  { key: 'building_cafe',  url: `${B}models/town/commercial/cafe.glb` },
+  { key: 'building_apt',   url: `${B}models/town/suburban/apartment.glb` },
+  { key: 'building_tower', url: `${B}models/town/commercial/tower.glb` },
+  { key: 'prop_tree',      url: `${B}models/props/tree.glb` },
+  { key: 'prop_flower',    url: `${B}models/props/flower.glb` },
+  { key: 'prop_lamp',      url: `${B}models/props/lamp.glb` },
+  { key: 'prop_bench',     url: `${B}models/props/bench.glb` },
+  { key: 'prop_mailbox',   url: `${B}models/props/mailbox.glb` },
+  { key: 'item_star',      url: `${B}models/items/star.glb` },
+  { key: 'item_coin',      url: `${B}models/items/coin.glb` },
+  { key: 'item_gem',       url: `${B}models/items/gem.glb` },
 ]

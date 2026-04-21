@@ -10,12 +10,17 @@
 </p>
 
 <p align="center">
+  <a href="https://3uxeca.github.io/walk-nyang/"><img src="https://img.shields.io/badge/▶️_Play_Now-walk--nyang-ff6b9d?style=flat-square"/></a>
   <a href="#quick-start"><img src="https://img.shields.io/badge/status-v2-ff6b9d?style=flat-square"/></a>
   <img src="https://img.shields.io/badge/TypeScript-5.x-3178c6?style=flat-square&logo=typescript&logoColor=white"/>
   <img src="https://img.shields.io/badge/Three.js-r170-black?style=flat-square&logo=three.js&logoColor=white"/>
   <img src="https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white"/>
   <img src="https://img.shields.io/badge/Vitest-65%20passing-6a4c93?style=flat-square&logo=vitest&logoColor=white"/>
   <img src="https://img.shields.io/badge/license-MIT-fefaf3?style=flat-square"/>
+</p>
+
+<p align="center">
+  🎮 <a href="https://3uxeca.github.io/walk-nyang/"><b>지금 플레이하기 →</b></a>
 </p>
 
 ---

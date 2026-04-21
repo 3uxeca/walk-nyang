@@ -18,7 +18,7 @@ async function loadMeowBuffer(): Promise<void> {
   if (meowLoadAttempted) return
   meowLoadAttempted = true
   try {
-    const res = await fetch('/sounds/meow.wav')
+    const res = await fetch(`${import.meta.env.BASE_URL}sounds/meow.wav`)
     if (!res.ok) return
     const arrayBuffer = await res.arrayBuffer()
     meowBuffer = await getCtx().decodeAudioData(arrayBuffer)
@@ -34,7 +34,7 @@ async function loadPurringBuffer(): Promise<void> {
   if (purringLoadAttempted) return
   purringLoadAttempted = true
   try {
-    const res = await fetch('/sounds/purring.ogg')
+    const res = await fetch(`${import.meta.env.BASE_URL}sounds/purring.ogg`)
     if (!res.ok) return
     const arrayBuffer = await res.arrayBuffer()
     purringBuffer = await getCtx().decodeAudioData(arrayBuffer)
@@ -47,7 +47,7 @@ async function loadFootstepBuffer(): Promise<void> {
   if (footstepLoadAttempted) return
   footstepLoadAttempted = true
   try {
-    const res = await fetch('/sounds/footstep.ogg')
+    const res = await fetch(`${import.meta.env.BASE_URL}sounds/footstep.ogg`)
     if (!res.ok) return
     const arrayBuffer = await res.arrayBuffer()
     footstepBuffer = await getCtx().decodeAudioData(arrayBuffer)
