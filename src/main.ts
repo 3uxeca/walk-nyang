@@ -235,10 +235,21 @@ async function init() {
       }
     }
 
-    // Block movement into locked regions, but allow travel along the road band
+    // 청크 메시가 아직 빌드되지 않은 영역으로의 진입 차단 (worker 로딩 지연 시)
     const targetCX = Math.floor(charPos.x / CHUNK_SIZE)
     const targetCZ = Math.floor(charPos.z / CHUNK_SIZE)
-    if (regionManager.getChunkState(targetCX, targetCZ) === 'locked') {
+    const prevCX = Math.floor(prevX / CHUNK_SIZE)
+    const prevCZ = Math.floor(prevZ / CHUNK_SIZE)
+    let chunkBlocked = false
+    if ((prevCX !== targetCX || prevCZ !== targetCZ) && !chunkManager!.hasChunk(targetCX, targetCZ)) {
+      charPos.x = prevX
+      charPos.z = prevZ
+      toast!.show('지역을 불러오는 중이에요', '⏳', 'unloaded-chunk', 1200)
+      chunkBlocked = true
+    }
+
+    // Block movement into locked regions, but allow travel along the road band
+    if (!chunkBlocked && regionManager.getChunkState(targetCX, targetCZ) === 'locked') {
       const ROAD_HALF = 9
       const lx = ((charPos.x % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE - CHUNK_SIZE / 2
       const lz = ((charPos.z % CHUNK_SIZE) + CHUNK_SIZE) % CHUNK_SIZE - CHUNK_SIZE / 2

@@ -22,7 +22,8 @@ interface SwapJob {
 export class ChunkManager {
   private scene: THREE.Scene
   private chunks = new Map<string, ChunkEntry>()
-  private activeRadius = 2
+  // 7x7 청크 = 약 224 유닛 반경 — worker 비동기 로딩 지연을 흡수하기에 충분
+  private activeRadius = 3
   private worker: Worker | null = null
   private pendingChunks = new Set<string>()
   private useWorker = false
@@ -41,6 +42,11 @@ export class ChunkManager {
 
   setRegionManager(regionManager: RegionManager) {
     this.regionManager = regionManager
+  }
+
+  /** 해당 청크가 메시까지 빌드되어 있는지 — 펜딩 상태(요청은 보냈지만 도착 전)는 false */
+  hasChunk(cx: number, cz: number): boolean {
+    return this.chunks.has(`${cx},${cz}`)
   }
 
   private initWorker() {
