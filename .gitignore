@@ -1,4 +1,38 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+.vite/
+
+# macOS / OS
 .DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+*.swp
 *.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# ── OMC 런타임 상태 ──
+# dev-process 산출물(prd.json, progress.txt, specs/, plans/)은 커밋 대상
+# 그 외 런타임/세션/개인 메모리는 제외
+.omc/state/
+.omc/sessions/
+.omc/project-memory.json
+.omc/notepad.md
+.omc/logs/
+.omc/research/
