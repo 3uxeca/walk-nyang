@@ -10,17 +10,28 @@ export class ThirdPersonCamera {
   private lerpFactor = 0.1
   // 오프셋 전환은 한 박자 느리게 (2초 안에 부드럽게)
   private offsetLerpFactor = 0.025
+  // FOV — 대시 시 살짝 넓어져 속도감 생성
+  private readonly fovBase  = 70
+  private readonly fovDash  = 82
+  private fovLerpFactor = 0.12
 
   constructor(aspect: number) {
-    this.camera = new THREE.PerspectiveCamera(70, aspect, 0.1, 200)
+    this.camera = new THREE.PerspectiveCamera(this.fovBase, aspect, 0.1, 200)
   }
 
-  update(targetPosition: THREE.Vector3, isIdle: boolean = false) {
+  update(targetPosition: THREE.Vector3, isIdle: boolean = false, isDashing: boolean = false) {
     const targetOffset = isIdle ? this.offsetIdle : this.offsetActive
     this.currentOffset.lerp(targetOffset, this.offsetLerpFactor)
     const desired = targetPosition.clone().add(this.currentOffset)
     this.camera.position.lerp(desired, this.lerpFactor)
     this.camera.lookAt(targetPosition.x, targetPosition.y + 1.2, targetPosition.z)
+
+    // FOV 부드러운 전환
+    const targetFov = isDashing ? this.fovDash : this.fovBase
+    if (Math.abs(this.camera.fov - targetFov) > 0.01) {
+      this.camera.fov += (targetFov - this.camera.fov) * this.fovLerpFactor
+      this.camera.updateProjectionMatrix()
+    }
   }
 
   get angle(): number {

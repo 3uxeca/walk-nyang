@@ -12,6 +12,7 @@ import { RegionUnlockFX } from './ui/RegionUnlockFX'
 import { ControlsHUD } from './ui/ControlsHUD'
 import { CollectFX } from './game/CollectFX'
 import { HeartFX } from './game/HeartFX'
+import { DashTrailFX } from './game/DashTrailFX'
 import { playMeow, playJump, startPurring, stopPurring, playFootstep, playDashWhoosh } from './game/SoundSystem'
 import { getTerrainHeight } from './world/Terrain'
 import { CHUNK_SIZE } from './world/ChunkGenerator'
@@ -31,6 +32,7 @@ let hud: HUD | null = null
 let controlsHUD: ControlsHUD | null = null
 let collectFX: CollectFX | null = null
 let heartFX: HeartFX | null = null
+let dashTrailFX: DashTrailFX | null = null
 let skySystem: SkySystem | null = null
 let verticalVelocity = 0
 let isOnGround = true
@@ -132,6 +134,7 @@ async function init() {
 
   collectFX = new CollectFX(scene)
   heartFX = new HeartFX(scene)
+  dashTrailFX = new DashTrailFX(scene)
 
   chunkManager = new ChunkManager(scene)
   chunkManager.setRegionManager(regionManager)
@@ -302,7 +305,8 @@ async function init() {
 
     character.update(delta, moving, !isOnGround, isDashing)
     controlsHUD!.update(controller!.input)
-    thirdPersonCamera.update(character.getPosition(), idleTime >= 5)
+    thirdPersonCamera.update(character.getPosition(), idleTime >= 5, isDashing)
+    dashTrailFX!.update(delta, isDashing && isOnGround, charPos.x, charPos.y, charPos.z, vel.x, vel.z)
 
     chunkManager!.update(charPos.x, charPos.z)
     chunkManager!.processSwaps(1)
@@ -379,6 +383,7 @@ if (import.meta.hot) {
     if (controlsHUD) controlsHUD.dispose()
     if (collectFX) collectFX.dispose()
     if (heartFX) heartFX.dispose()
+    if (dashTrailFX) dashTrailFX.dispose()
     if (skySystem) skySystem.dispose()
     skySystem = null
     if (_onResize) window.removeEventListener('resize', _onResize)
@@ -393,6 +398,7 @@ if (import.meta.hot) {
     controlsHUD = null
     collectFX = null
     heartFX = null
+    dashTrailFX = null
     _onResize = null
     verticalVelocity = 0
     isOnGround = true
