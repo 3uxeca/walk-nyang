@@ -302,7 +302,7 @@ async function init() {
 
     character.update(delta, moving, !isOnGround, isDashing)
     controlsHUD!.update(controller!.input)
-    thirdPersonCamera.update(character.getPosition())
+    thirdPersonCamera.update(character.getPosition(), idleTime >= 5)
 
     chunkManager!.update(charPos.x, charPos.z)
     chunkManager!.processSwaps(1)
