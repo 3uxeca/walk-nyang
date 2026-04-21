@@ -184,6 +184,8 @@ async function init() {
 
   const GRAVITY = -25
   const JUMP_FORCE = 11
+  // 대시 중 점프 — 체감상 약 1.7배 높이 (v^2 비례이므로 force 1.32배면 높이 ~1.75배)
+  const JUMP_FORCE_DASH = 14.5
   verticalVelocity = 0
   isOnGround = true
 
@@ -246,7 +248,7 @@ async function init() {
 
     // Jump
     if (controller!.input.jump && isOnGround) {
-      verticalVelocity = JUMP_FORCE
+      verticalVelocity = isDashing ? JUMP_FORCE_DASH : JUMP_FORCE
       isOnGround = false
       controller!.input.jump = false
       playJump()
