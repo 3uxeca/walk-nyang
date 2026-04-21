@@ -121,16 +121,8 @@
 |-------|------|------|-----------|------|
 | 1 | Controller 리팩토링 (InputSource 추상화) | ✅ | [`phase1`](reviews/wave1.5-phase1-controller-refactor.md) | `3f957eb` |
 | 2 | VirtualJoystick + MobileActionButtons + TouchInputSource | ✅ | [`phase2`](reviews/wave1.5-phase2-touch-controls.md) | `2f1c2e7` |
-| 3 | **랜딩(시작) 화면** — 로고 + START 버튼, 모바일/데스크탑 공통 | ⏳ | — | — |
+| 3 | 랜딩(시작) 화면 — 로고 + START 버튼, Jua 폰트, 모바일/데스크탑 공통 | ✅ | [`phase3`](reviews/wave1.5-phase3-landing-screen.md) | (commit) |
 | 4 | 실기 테스트 + Vitest pointer event 스텁 | ⏳ | — | — |
-
-### Phase 3 — 랜딩 화면 (다음 작업)
-
-- 사용자 제공 로고 (`public/walk-nyang-logo.png`, 585KB)
-- 게임 시작 전 풀스크린 오버레이 — 로고 + 타이틀 + START 버튼
-- 모바일/데스크탑 공통 (조이스틱이 START 버튼 위에 그려지지 않도록 표시 순서 관리)
-- 첫 사용자 인터랙션을 START 클릭으로 강제 → Web Audio context의 autoplay 정책도 자연스럽게 unlock
-- 추후: 세이브 있는 경우 "이어하기" 보조 버튼, 옵션(소리 끄기 등)
 
 ---
 

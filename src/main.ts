@@ -14,6 +14,7 @@ import { Toast } from './ui/Toast'
 import { VirtualJoystick } from './ui/VirtualJoystick'
 import { MobileActionButtons } from './ui/MobileActionButtons'
 import { TouchInputSource, isMobileEnvironment } from './character/TouchInputSource'
+import { LandingScreen } from './ui/LandingScreen'
 import { CollectFX } from './game/CollectFX'
 import { HeartFX } from './game/HeartFX'
 import { DashTrailFX } from './game/DashTrailFX'
@@ -38,6 +39,7 @@ let toast: Toast | null = null
 let virtualJoystick: VirtualJoystick | null = null
 let mobileButtons: MobileActionButtons | null = null
 let touchInputSource: TouchInputSource | null = null
+let landingScreen: LandingScreen | null = null
 let collectFX: CollectFX | null = null
 let heartFX: HeartFX | null = null
 let dashTrailFX: DashTrailFX | null = null
@@ -58,6 +60,21 @@ async function init() {
   const assets = AssetManager.getInstance()
   await assets.preload(ASSET_MANIFEST)
   document.getElementById('loading')?.remove()
+
+  // 랜딩 게이트 — 사용자가 START 누를 때까지 게임 init 보류.
+  // 첫 클릭으로 Web Audio context도 자연스럽게 unlock된다.
+  await new Promise<void>(resolve => {
+    landingScreen = new LandingScreen(() => {
+      landingScreen = null  // dispose는 컴포넌트 내부 setTimeout에서 처리
+      resolve()
+    }, {
+      logoUrl: `${import.meta.env.BASE_URL}walk-nyang-logo.png`,
+      title: '산책냥',
+      subtitle: '귀여운 고양이가 되어 마을을 거닐어 보세요',
+      buttonLabel: '시작하기',
+      hint: '버튼을 누르면 게임이 시작돼요',
+    })
+  })
 
   const canvas = document.createElement('canvas')
   document.getElementById('app')!.appendChild(canvas)
@@ -422,6 +439,7 @@ if (import.meta.hot) {
     if (toast) toast.dispose()
     if (virtualJoystick) virtualJoystick.dispose()
     if (mobileButtons) mobileButtons.dispose()
+    if (landingScreen) landingScreen.dispose()
     // touchInputSource.dispose()는 소유권을 UI에 넘기지 않았으므로 위 두 개가 실질 정리
     if (collectFX) collectFX.dispose()
     if (heartFX) heartFX.dispose()
@@ -442,6 +460,7 @@ if (import.meta.hot) {
     virtualJoystick = null
     mobileButtons = null
     touchInputSource = null
+    landingScreen = null
     collectFX = null
     heartFX = null
     dashTrailFX = null
