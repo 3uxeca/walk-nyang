@@ -11,6 +11,9 @@ import { HUD } from './ui/HUD'
 import { RegionUnlockFX } from './ui/RegionUnlockFX'
 import { ControlsHUD } from './ui/ControlsHUD'
 import { Toast } from './ui/Toast'
+import { VirtualJoystick } from './ui/VirtualJoystick'
+import { MobileActionButtons } from './ui/MobileActionButtons'
+import { TouchInputSource, isMobileEnvironment } from './character/TouchInputSource'
 import { CollectFX } from './game/CollectFX'
 import { HeartFX } from './game/HeartFX'
 import { DashTrailFX } from './game/DashTrailFX'
@@ -32,6 +35,9 @@ let autosaveTimer: ReturnType<typeof setInterval> | null = null
 let hud: HUD | null = null
 let controlsHUD: ControlsHUD | null = null
 let toast: Toast | null = null
+let virtualJoystick: VirtualJoystick | null = null
+let mobileButtons: MobileActionButtons | null = null
+let touchInputSource: TouchInputSource | null = null
 let collectFX: CollectFX | null = null
 let heartFX: HeartFX | null = null
 let dashTrailFX: DashTrailFX | null = null
@@ -113,8 +119,13 @@ async function init() {
     }
   }
 
+  const isMobile = isMobileEnvironment()
+
   hud = new HUD()
-  controlsHUD = new ControlsHUD()
+  // 데스크탑에선 키가이드 HUD 표시. 모바일에선 가상 조이스틱/버튼이 대신하므로 생성 안 함.
+  if (!isMobile) {
+    controlsHUD = new ControlsHUD()
+  }
   toast = new Toast()
   const regionUnlockFX = new RegionUnlockFX()
 
@@ -180,6 +191,14 @@ async function init() {
   }
 
   controller = new Controller()
+
+  // 모바일이면 가상 조이스틱 + 액션 버튼을 추가 입력 소스로 등록
+  if (isMobile) {
+    virtualJoystick = new VirtualJoystick()
+    mobileButtons = new MobileActionButtons()
+    touchInputSource = new TouchInputSource(virtualJoystick, mobileButtons, false)
+    controller.addSource(touchInputSource)
+  }
 
   const clock = new THREE.Clock()
   const speed = 8
@@ -323,7 +342,7 @@ async function init() {
     }
 
     character.update(delta, moving, !isOnGround, isDashing)
-    controlsHUD!.update(controller!.input)
+    controlsHUD?.update(controller!.input)
     thirdPersonCamera.update(character.getPosition(), idleTime >= 5, isDashing)
     dashTrailFX!.update(delta, isDashing && isOnGround, charPos.x, charPos.y, charPos.z, vel.x, vel.z)
 
@@ -401,6 +420,9 @@ if (import.meta.hot) {
     if (hud) hud.dispose()
     if (controlsHUD) controlsHUD.dispose()
     if (toast) toast.dispose()
+    if (virtualJoystick) virtualJoystick.dispose()
+    if (mobileButtons) mobileButtons.dispose()
+    // touchInputSource.dispose()는 소유권을 UI에 넘기지 않았으므로 위 두 개가 실질 정리
     if (collectFX) collectFX.dispose()
     if (heartFX) heartFX.dispose()
     if (dashTrailFX) dashTrailFX.dispose()
@@ -417,6 +439,9 @@ if (import.meta.hot) {
     hud = null
     controlsHUD = null
     toast = null
+    virtualJoystick = null
+    mobileButtons = null
+    touchInputSource = null
     collectFX = null
     heartFX = null
     dashTrailFX = null

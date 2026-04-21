@@ -129,10 +129,17 @@ export class Controller {
   }
 
   /**
-   * 매 프레임 호출. 모든 소스의 held 상태를 OR-reduce하여 `input`에 반영하고,
-   * jump 엣지를 모으고, 아날로그 소스의 `update()`를 호출한다.
+   * 매 프레임 호출. 순서:
+   *  1) 모든 소스의 update(dt) 먼저 실행 — 아날로그 소스가 자체 state를 최신화
+   *  2) held 필드 OR-reduce
+   *  3) jump 엣지 수집
+   * (1)이 (2)보다 앞서야 터치 조이스틱 방향이 1 프레임 지연 없이 반영됨.
    */
   update(dt: number): void {
+    for (const s of this.sources) {
+      s.update?.(dt)
+    }
+
     this.input.forward  = this.sources.some(s => s.state.forward)
     this.input.backward = this.sources.some(s => s.state.backward)
     this.input.left     = this.sources.some(s => s.state.left)
@@ -141,7 +148,6 @@ export class Controller {
 
     let jump = false
     for (const s of this.sources) {
-      if (s.update) s.update(dt)
       if (s.consumeJump?.()) jump = true
     }
     this.input.jump = jump
