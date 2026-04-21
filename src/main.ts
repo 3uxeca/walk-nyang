@@ -10,6 +10,7 @@ import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION } from './game
 import { HUD } from './ui/HUD'
 import { RegionUnlockFX } from './ui/RegionUnlockFX'
 import { ControlsHUD } from './ui/ControlsHUD'
+import { Toast } from './ui/Toast'
 import { CollectFX } from './game/CollectFX'
 import { HeartFX } from './game/HeartFX'
 import { DashTrailFX } from './game/DashTrailFX'
@@ -30,6 +31,7 @@ let itemSystem: ItemSystem | null = null
 let autosaveTimer: ReturnType<typeof setInterval> | null = null
 let hud: HUD | null = null
 let controlsHUD: ControlsHUD | null = null
+let toast: Toast | null = null
 let collectFX: CollectFX | null = null
 let heartFX: HeartFX | null = null
 let dashTrailFX: DashTrailFX | null = null
@@ -113,6 +115,7 @@ async function init() {
 
   hud = new HUD()
   controlsHUD = new ControlsHUD()
+  toast = new Toast()
   const regionUnlockFX = new RegionUnlockFX()
 
   function currentRegionInfo() {
@@ -243,6 +246,8 @@ async function init() {
       if (!onRoad) {
         charPos.x = prevX
         charPos.z = prevZ
+        // 경계 이탈 시도 알림 (쓰로틀됨)
+        toast!.show('아직 잠겨있는 지역이에요', '🔒', 'locked-region', 2000)
       }
     }
 
@@ -383,6 +388,7 @@ if (import.meta.hot) {
     if (autosaveTimer !== null) clearInterval(autosaveTimer)
     if (hud) hud.dispose()
     if (controlsHUD) controlsHUD.dispose()
+    if (toast) toast.dispose()
     if (collectFX) collectFX.dispose()
     if (heartFX) heartFX.dispose()
     if (dashTrailFX) dashTrailFX.dispose()
@@ -398,6 +404,7 @@ if (import.meta.hot) {
     autosaveTimer = null
     hud = null
     controlsHUD = null
+    toast = null
     collectFX = null
     heartFX = null
     dashTrailFX = null
