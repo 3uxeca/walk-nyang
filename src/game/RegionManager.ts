@@ -3,6 +3,22 @@ export interface ChunkRegionState {
   state: 'locked' | 'unlocking' | 'unlocked';
 }
 
+export interface RegionInfo {
+  name: string;
+  emoji: string;
+}
+
+export const REGION_NAMES: Record<number, RegionInfo> = {
+  0: { name: '초원 마을',   emoji: '🌿' },
+  1: { name: '항구 마을',   emoji: '⚓' },
+  2: { name: '숲 마을',     emoji: '🌲' },
+  3: { name: '황야 마을',   emoji: '✨' },
+};
+
+export function getRegionInfo(regionId: number): RegionInfo {
+  return REGION_NAMES[regionId] ?? { name: '새 마을', emoji: '🗺️' };
+}
+
 export function regionForChunk(cx: number, cz: number): number {
   return Math.floor(Math.max(Math.abs(cx), Math.abs(cz)) / 3);
 }

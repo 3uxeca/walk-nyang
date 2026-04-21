@@ -5,7 +5,7 @@ import { ThirdPersonCamera } from './camera/ThirdPersonCamera'
 import { ChunkManager, WORLD_SEED } from './world/ChunkManager'
 import { ItemSystem } from './game/ItemSystem'
 import { ProgressSystem } from './game/ProgressSystem'
-import { RegionManager } from './game/RegionManager'
+import { RegionManager, regionForChunk, getRegionInfo } from './game/RegionManager'
 import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION } from './game/SaveSystem'
 import { HUD } from './ui/HUD'
 import { RegionUnlockFX } from './ui/RegionUnlockFX'
@@ -113,10 +113,21 @@ async function init() {
   controlsHUD = new ControlsHUD()
   const regionUnlockFX = new RegionUnlockFX()
 
+  function currentRegionInfo() {
+    const pos = character.getPosition()
+    const cx = Math.floor(pos.x / CHUNK_SIZE)
+    const cz = Math.floor(pos.z / CHUNK_SIZE)
+    return { id: regionForChunk(cx, cz), ...getRegionInfo(regionForChunk(cx, cz)) }
+  }
+
+  const initialRegion = currentRegionInfo()
+  let lastRegionId = initialRegion.id
+
   hud.update(
     progressSystem.getTotalCollected(),
     progressSystem.getNextLevelThreshold(),
-    `${progressSystem.getCurrentLevel()}`
+    initialRegion.name,
+    initialRegion.emoji
   )
 
   collectFX = new CollectFX(scene)
@@ -145,10 +156,12 @@ async function init() {
     const col = colors[Math.floor(Math.random() * colors.length)]
     const pos = character.getPosition()
     collectFX!.spawn(pos.x, pos.y + 1.0, pos.z, col)
+    const ri = currentRegionInfo()
     hud!.update(
       progressSystem.getTotalCollected(),
       progressSystem.getNextLevelThreshold(),
-      `${progressSystem.getCurrentLevel()}`
+      ri.name,
+      ri.emoji
     )
     saveSystem.save(buildSaveData())
   })
@@ -293,6 +306,20 @@ async function init() {
 
     chunkManager!.update(charPos.x, charPos.z)
     chunkManager!.processSwaps(1)
+
+    // 지역이 바뀌면 HUD 갱신
+    const curRegionId = regionForChunk(Math.floor(charPos.x / CHUNK_SIZE), Math.floor(charPos.z / CHUNK_SIZE))
+    if (curRegionId !== lastRegionId) {
+      lastRegionId = curRegionId
+      const info = getRegionInfo(curRegionId)
+      hud!.update(
+        progressSystem.getTotalCollected(),
+        progressSystem.getNextLevelThreshold(),
+        info.name,
+        info.emoji
+      )
+    }
+
     itemSystem!.update(delta, charPos.x, charPos.z)
     collectFX!.update(delta)
     skySystem!.update(delta)

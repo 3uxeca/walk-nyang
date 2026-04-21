@@ -44,16 +44,7 @@ function injectStyles() {
   document.head.appendChild(s)
 }
 
-const REGION_NAMES: Record<number, { name: string; emoji: string }> = {
-  0: { name: '초원 마을',   emoji: '🌿' },
-  1: { name: '항구 마을',   emoji: '⚓' },
-  2: { name: '숲 마을',     emoji: '🌲' },
-  3: { name: '황야 마을',   emoji: '✨' },
-}
-
-function getRegion(id: number) {
-  return REGION_NAMES[id] ?? { name: '새 마을', emoji: '🗺️' }
-}
+import { getRegionInfo } from '../game/RegionManager'
 
 export class RegionUnlockFX {
   constructor() {
@@ -61,7 +52,7 @@ export class RegionUnlockFX {
   }
 
   showUnlock(regionId: number): void {
-    const { name, emoji } = getRegion(regionId)
+    const { name, emoji } = getRegionInfo(regionId)
 
     const toast = document.createElement('div')
     toast.className = 'w3d-toast'

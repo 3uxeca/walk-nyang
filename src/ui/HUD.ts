@@ -77,6 +77,7 @@ export class HUD {
   private countEl: HTMLSpanElement
   private barFill: HTMLDivElement
   private regionEl: HTMLSpanElement
+  private regionIcon: HTMLSpanElement
   private lastCollected = 0
 
   constructor() {
@@ -108,23 +109,24 @@ export class HUD {
     const row2 = document.createElement('div')
     row2.className = 'w3d-hud-row'
 
-    const icon2 = document.createElement('span')
-    icon2.className = 'w3d-hud-icon'
-    icon2.style.fontSize = '14px'
-    icon2.textContent = '🌸'
+    this.regionIcon = document.createElement('span')
+    this.regionIcon.className = 'w3d-hud-icon'
+    this.regionIcon.style.fontSize = '14px'
+    this.regionIcon.textContent = '🌿'
 
     this.regionEl = document.createElement('span')
     this.regionEl.className = 'w3d-hud-region'
-    row2.append(icon2, this.regionEl)
+    row2.append(this.regionIcon, this.regionEl)
 
     this.el.append(row1, row2)
     document.body.appendChild(this.el)
   }
 
-  update(collected: number, threshold: number, regionName: string): void {
+  update(collected: number, threshold: number, regionName: string, regionEmoji?: string): void {
     this.countEl.textContent = `${collected} / ${threshold}`
     this.barFill.style.width = `${Math.min(100, (collected / threshold) * 100)}%`
-    this.regionEl.textContent = `지역 ${regionName}`
+    this.regionEl.textContent = regionName
+    if (regionEmoji) this.regionIcon.textContent = regionEmoji
 
     if (collected > this.lastCollected) {
       this.countEl.classList.remove('w3d-hud-pop')
