@@ -122,7 +122,9 @@
 | 1 | Controller 리팩토링 (InputSource 추상화) | ✅ | [`phase1`](reviews/wave1.5-phase1-controller-refactor.md) | `3f957eb` |
 | 2 | VirtualJoystick + MobileActionButtons + TouchInputSource | ✅ | [`phase2`](reviews/wave1.5-phase2-touch-controls.md) | `2f1c2e7` |
 | 3 | 랜딩(시작) 화면 — 로고 + START 버튼, Jua 폰트, 모바일/데스크탑 공통 | ✅ | [`phase3`](reviews/wave1.5-phase3-landing-screen.md) | (commit) |
-| 4 | 실기 테스트 + Vitest pointer event 스텁 | ⏳ | — | — |
+| 4 | Vitest 스텁 테스트 + 실기 테스트 가이드 | ✅ | [`phase4`](reviews/wave1.5-phase4-tests-and-manual-guide.md) | (commit) |
+
+**Wave 1.5 종료** — 모바일 컨트롤 + 랜딩 화면 + 회귀 보호까지 완료.
 
 ---
 

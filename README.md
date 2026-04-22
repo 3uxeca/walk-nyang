@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/TypeScript-5.x-3178c6?style=flat-square&logo=typescript&logoColor=white"/>
   <img src="https://img.shields.io/badge/Three.js-r170-black?style=flat-square&logo=three.js&logoColor=white"/>
   <img src="https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Vitest-65%20passing-6a4c93?style=flat-square&logo=vitest&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Vitest-77%20passing-6a4c93?style=flat-square&logo=vitest&logoColor=white"/>
   <img src="https://img.shields.io/badge/license-MIT-fefaf3?style=flat-square"/>
 </p>
 
@@ -66,7 +66,7 @@ npm run build
 # 4. 빌드 결과물 미리보기
 npm run preview
 
-# 5. 테스트 (65 tests · 9 files)
+# 5. 테스트 (77 tests · 10 files)
 npm test
 ```
 
@@ -168,7 +168,7 @@ walk3d/
 npm test
 ```
 
-**65 tests · 9 files · 전부 통과**
+**77 tests · 10 files · 전부 통과**
 
 | 파일 | 케이스 | 커버리지 |
 |------|--------|----------|
@@ -180,7 +180,8 @@ npm test
 | `noise.test.ts` | 6 | 시드 노이즈 안정성 |
 | `pool.test.ts` | 5 | 오브젝트 풀링 |
 | `chunkWorker.test.ts` | 2 | 워커 메시지 |
-| `Controller.test.ts` | 5 | 입력 매핑 |
+| `Controller.test.ts` | 5 | 키보드 입력 매핑 |
+| `TouchInputSource.test.ts` | 12 | 조이스틱 axis 매핑 + jump consume + 모바일 감지 |
 
 ---
 
