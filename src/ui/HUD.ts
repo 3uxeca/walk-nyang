@@ -78,6 +78,7 @@ export class HUD {
   private barFill: HTMLDivElement
   private regionEl: HTMLSpanElement
   private regionIcon: HTMLSpanElement
+  private specialtyIcon: HTMLSpanElement
   private lastCollected = 0
 
   constructor() {
@@ -116,17 +117,31 @@ export class HUD {
 
     this.regionEl = document.createElement('span')
     this.regionEl.className = 'w3d-hud-region'
-    row2.append(this.regionIcon, this.regionEl)
+
+    // 특산품 힌트 — 지역명 옆에 작은 이모지로 상시 노출. 값이 없으면 빈 텍스트.
+    this.specialtyIcon = document.createElement('span')
+    this.specialtyIcon.className = 'w3d-hud-icon'
+    this.specialtyIcon.style.fontSize = '14px'
+    this.specialtyIcon.style.marginLeft = '2px'
+
+    row2.append(this.regionIcon, this.regionEl, this.specialtyIcon)
 
     this.el.append(row1, row2)
     document.body.appendChild(this.el)
   }
 
-  update(collected: number, threshold: number, regionName: string, regionEmoji?: string): void {
+  update(
+    collected: number,
+    threshold: number,
+    regionName: string,
+    regionEmoji?: string,
+    specialtyEmoji?: string,
+  ): void {
     this.countEl.textContent = `${collected} / ${threshold}`
     this.barFill.style.width = `${Math.min(100, (collected / threshold) * 100)}%`
     this.regionEl.textContent = regionName
     if (regionEmoji) this.regionIcon.textContent = regionEmoji
+    this.specialtyIcon.textContent = specialtyEmoji ?? ''
 
     if (collected > this.lastCollected) {
       this.countEl.classList.remove('w3d-hud-pop')

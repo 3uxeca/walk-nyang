@@ -4,6 +4,12 @@ import { BUILDING_TYPES } from './Buildings'
 import type { BuildingType } from './Buildings'
 import { PROP_TYPES } from './Props'
 import type { PropType } from './Props'
+import { regionForChunk, getRegionInfo } from '../game/RegionManager'
+import type { ItemType } from '../game/ItemTypes'
+import { BASE_ITEM_TYPES } from '../game/ItemTypes'
+
+/** 지역 특산품 스폰 확률 (청크당 1회 베르누이 시도) */
+export const SPECIALTY_SPAWN_CHANCE = 0.15
 
 export const CHUNK_SIZE = 32  // 월드 유닛
 
@@ -22,10 +28,10 @@ export interface PropData {
 }
 
 export interface ItemCandidateData {
-  id: string  // "chunkX,chunkZ,localIdx"
+  id: string  // "chunkX,chunkZ,localIdx" 또는 "chunkX,chunkZ,sp" (특산품)
   x: number   // 월드 좌표
   z: number
-  type: 'star' | 'coin' | 'gem'
+  type: ItemType
 }
 
 export interface ChunkData {
@@ -88,8 +94,7 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
     })
   }
 
-  // 아이템 후보: 청크당 2-4개
-  const itemTypes: ('star' | 'coin' | 'gem')[] = ['star', 'coin', 'gem']
+  // 기본 아이템 후보: 청크당 2-4개 (지역 무관 공통 풀)
   const itemCount = 2 + Math.floor(rng() * 3)
   for (let i = 0; i < itemCount; i++) {
     const ix = (cx + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
@@ -98,7 +103,21 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
       id: `${cx},${cz},${i}`,
       x: ix,
       z: iz,
-      type: itemTypes[Math.floor(rng() * 3)],
+      type: BASE_ITEM_TYPES[Math.floor(rng() * BASE_ITEM_TYPES.length)],
+    })
+  }
+
+  // 지역 특산품: 확률적으로 1개 추가. 수집 시 weight=3이라 기본보다 훨씬 값짐.
+  const regionId = regionForChunk(cx, cz)
+  const specialty = getRegionInfo(regionId).specialty
+  if (specialty && rng() < SPECIALTY_SPAWN_CHANCE) {
+    const ix = (cx + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
+    const iz = (cz + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
+    items.push({
+      id: `${cx},${cz},sp`,  // 기본과 충돌 방지 위해 인덱스 대신 'sp' 접미사
+      x: ix,
+      z: iz,
+      type: specialty.itemType,
     })
   }
 

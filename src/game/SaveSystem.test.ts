@@ -90,4 +90,20 @@ describe('SaveSystem', () => {
     expect(loaded).not.toBeNull()
     expect(loaded?.tutorialSeen).toBeUndefined()
   })
+
+  it('totalCollected 필드가 round-trip으로 보존됨', () => {
+    const data: SaveData = { ...makeValidData(), totalCollected: 42 }
+    sys.save(data)
+    const loaded = sys.load()
+    expect(loaded?.totalCollected).toBe(42)
+  })
+
+  it('totalCollected 필드가 없는 예전 세이브도 로드 성공 (필드 undefined)', () => {
+    const legacy = makeValidData()  // totalCollected 없음
+    sys.save(legacy)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.totalCollected).toBeUndefined()
+    // 호출자는 `?? collectedItemIds.length` 폴백을 사용한다 (main.ts 계약)
+  })
 })

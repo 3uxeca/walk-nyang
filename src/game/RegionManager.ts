@@ -1,18 +1,30 @@
+import type { ItemType } from './ItemTypes';
+
 export interface ChunkRegionState {
   regionId: number;
   state: 'locked' | 'unlocking' | 'unlocked';
 }
 
+export interface RegionSpecialty {
+  /** ChunkGenerator가 스폰할 특산품 아이템 타입 */
+  itemType: ItemType;
+  /** HUD·토스트에서 쓰는 대표 이모지 */
+  emoji: string;
+  /** 토스트·모달에 노출될 한국어 이름 */
+  displayName: string;
+}
+
 export interface RegionInfo {
   name: string;
   emoji: string;
+  specialty?: RegionSpecialty;
 }
 
 export const REGION_NAMES: Record<number, RegionInfo> = {
-  0: { name: '초원 마을',   emoji: '🌿' },
-  1: { name: '항구 마을',   emoji: '⚓' },
-  2: { name: '숲 마을',     emoji: '🌲' },
-  3: { name: '황야 마을',   emoji: '✨' },
+  0: { name: '초원 마을', emoji: '🌿', specialty: { itemType: 'flower',  emoji: '🌸', displayName: '꽃' } },
+  1: { name: '항구 마을', emoji: '⚓', specialty: { itemType: 'fish',    emoji: '🐟', displayName: '물고기' } },
+  2: { name: '숲 마을',   emoji: '🌲', specialty: { itemType: 'clover',  emoji: '🍀', displayName: '네잎클로버' } },
+  3: { name: '황야 마을', emoji: '✨', specialty: { itemType: 'droplet', emoji: '💧', displayName: '물방울' } },
 };
 
 export function getRegionInfo(regionId: number): RegionInfo {

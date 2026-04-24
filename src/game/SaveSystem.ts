@@ -14,6 +14,12 @@ export interface SaveData {
    * 필드 자체가 없는 예전 세이브도 정상 로드되어 false로 간주.
    */
   tutorialSeen?: boolean
+  /**
+   * 수집 가중치(특산품 weight=3)를 반영한 누적 점수.
+   * 로드 시 리플레이 대신 직접 복원해 가중치가 두 번 적용되는 문제를 회피한다.
+   * 필드가 없으면 `collectedItemIds.length`로 폴백 (예전 세이브 호환).
+   */
+  totalCollected?: number
 }
 
 function isValidSaveShape(v: unknown): v is SaveData {

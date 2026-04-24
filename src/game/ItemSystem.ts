@@ -1,12 +1,14 @@
 import * as THREE from 'three'
 import type { ItemCandidateData } from '../world/ChunkGenerator'
+import type { ItemType } from './ItemTypes'
 
 export const COLLECT_RADIUS = 1.5
 
-export type CollectHandler = (id: string) => void
+export type CollectHandler = (id: string, type: ItemType) => void
 
 interface ActiveItem {
   id: string
+  type: ItemType
   mesh: THREE.Group
   x: number
   z: number
@@ -41,7 +43,7 @@ function makeStarShape(outerR: number, innerR: number, points: number): THREE.Sh
   return shape
 }
 
-function createItemMesh(type: 'star' | 'coin' | 'gem'): THREE.Group {
+function createItemMesh(type: ItemType): THREE.Group {
   const group = new THREE.Group()
 
   if (type === 'star') {
@@ -60,7 +62,7 @@ function createItemMesh(type: 'star' | 'coin' | 'gem'): THREE.Group {
     disc.castShadow = true
     group.add(disc)
 
-  } else {
+  } else if (type === 'gem') {
     const mat = new THREE.MeshStandardMaterial({ color: 0xcc77ff, emissive: 0x8833dd, emissiveIntensity: 0.6, metalness: 0.2, roughness: 0.05, transparent: true, opacity: 0.88 })
     const core = new THREE.Mesh(new THREE.OctahedronGeometry(0.36, 1), mat)
     core.castShadow = true
@@ -68,6 +70,74 @@ function createItemMesh(type: 'star' | 'coin' | 'gem'): THREE.Group {
     const glowMat = new THREE.MeshStandardMaterial({ color: 0xdd99ff, emissive: 0xbb44ff, emissiveIntensity: 1.0, transparent: true, opacity: 0.25, side: THREE.BackSide })
     const glow = new THREE.Mesh(new THREE.OctahedronGeometry(0.52, 1), glowMat)
     group.add(glow)
+
+  } else if (type === 'flower') {
+    // 초원 특산품 — 노란 중심 + 5장 분홍 꽃잎
+    const centerMat = new THREE.MeshStandardMaterial({ color: 0xffe066, emissive: 0xffcc33, emissiveIntensity: 0.4 })
+    const center = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 12), centerMat)
+    center.castShadow = true
+    group.add(center)
+    const petalMat = new THREE.MeshStandardMaterial({ color: 0xff8fb1, emissive: 0xff6a9b, emissiveIntensity: 0.3, roughness: 0.4 })
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2
+      const petal = new THREE.Mesh(new THREE.SphereGeometry(0.2, 10, 10), petalMat)
+      petal.scale.set(1.0, 0.3, 1.0)
+      petal.position.set(Math.cos(a) * 0.3, 0, Math.sin(a) * 0.3)
+      petal.castShadow = true
+      group.add(petal)
+    }
+
+  } else if (type === 'fish') {
+    // 항구 특산품 — 방추형 시안 몸체 + 삼각 꼬리
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x7ec8e3, emissive: 0x4aa3c8, emissiveIntensity: 0.3, metalness: 0.4, roughness: 0.35 })
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.3, 14, 10), bodyMat)
+    body.scale.set(1.4, 0.9, 0.9)
+    body.castShadow = true
+    group.add(body)
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.26, 8), bodyMat)
+    tail.rotation.z = Math.PI / 2
+    tail.position.x = -0.44
+    tail.castShadow = true
+    group.add(tail)
+    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, emissive: 0x000000, roughness: 0.2 })
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.055, 8, 8), eyeMat)
+    eye.position.set(0.24, 0.1, 0.2)
+    group.add(eye)
+
+  } else if (type === 'clover') {
+    // 숲 특산품 — 4장 초록 잎 십자 배치 + 연한 중심
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x7ccc4a, emissive: 0x4a9a28, emissiveIntensity: 0.4, roughness: 0.5 })
+    const positions: Array<[number, number]> = [[0, 0.22], [0, -0.22], [0.22, 0], [-0.22, 0]]
+    for (const [dx, dz] of positions) {
+      const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), leafMat)
+      leaf.scale.set(0.9, 0.35, 0.9)
+      leaf.position.set(dx, 0, dz)
+      leaf.castShadow = true
+      group.add(leaf)
+    }
+    const centerMat = new THREE.MeshStandardMaterial({ color: 0xcce88a, emissive: 0xaad070, emissiveIntensity: 0.5 })
+    const center = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 8), centerMat)
+    group.add(center)
+
+  } else if (type === 'droplet') {
+    // 황야 특산품 — 반투명 파란 물방울 (구 + 원뿔)
+    const mat = new THREE.MeshStandardMaterial({ color: 0x6ec8ff, emissive: 0x3397e8, emissiveIntensity: 0.45, transparent: true, opacity: 0.85, roughness: 0.1, metalness: 0.25 })
+    const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.26, 14, 14), mat)
+    sphere.position.y = -0.1
+    sphere.castShadow = true
+    group.add(sphere)
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.38, 14), mat)
+    cone.position.y = 0.18
+    cone.castShadow = true
+    group.add(cone)
+    const glowMat = new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xbbffff, emissiveIntensity: 0.9, transparent: true, opacity: 0.6 })
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(0.08, 8, 8), glowMat)
+    glow.position.set(-0.09, -0.05, 0.1)
+    group.add(glow)
+  } else {
+    // 새 ItemType을 추가했는데 여기서 처리 분기를 빠뜨렸다는 컴파일 타임 경고.
+    const _exhaustive: never = type
+    throw new Error(`Unknown item type: ${String(_exhaustive)}`)
   }
 
   return group
@@ -106,7 +176,7 @@ export class ItemSystem {
       const mesh = createItemMesh(candidate.type)
       mesh.position.set(candidate.x, 1.5, candidate.z)
       this.scene.add(mesh)
-      this.activeItems.set(candidate.id, { id: candidate.id, mesh, x: candidate.x, z: candidate.z })
+      this.activeItems.set(candidate.id, { id: candidate.id, type: candidate.type, mesh, x: candidate.x, z: candidate.z })
     }
   }
 
@@ -140,7 +210,7 @@ export class ItemSystem {
       disposeItemMesh(item.mesh)
       this.activeItems.delete(id)
       this.collectedItemIds.add(id)
-      this.onCollect(id)
+      this.onCollect(id, item.type)
     }
   }
 

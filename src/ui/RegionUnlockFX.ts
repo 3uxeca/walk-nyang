@@ -52,7 +52,7 @@ export class RegionUnlockFX {
   }
 
   showUnlock(regionId: number): void {
-    const { name, emoji } = getRegionInfo(regionId)
+    const { name, emoji, specialty } = getRegionInfo(regionId)
 
     const toast = document.createElement('div')
     toast.className = 'w3d-toast'
@@ -60,7 +60,10 @@ export class RegionUnlockFX {
     toast.appendChild(document.createTextNode('🎉 새 지역 해제! '))
     const sub = document.createElement('span')
     sub.className = 'toast-sub'
-    sub.textContent = `${emoji} ${name}`
+    const baseLine = `${emoji} ${name}`
+    sub.textContent = specialty
+      ? `${baseLine} — ${specialty.emoji} ${specialty.displayName}이(가) 자라요`
+      : baseLine
     toast.appendChild(sub)
     document.body.appendChild(toast)
 

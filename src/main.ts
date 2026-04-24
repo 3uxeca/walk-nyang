@@ -7,6 +7,8 @@ import { ItemSystem } from './game/ItemSystem'
 import { ProgressSystem } from './game/ProgressSystem'
 import { RegionManager, regionForChunk, getRegionInfo } from './game/RegionManager'
 import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION } from './game/SaveSystem'
+import { ITEM_WEIGHT } from './game/ItemTypes'
+import type { ItemType } from './game/ItemTypes'
 import { HUD } from './ui/HUD'
 import { RegionUnlockFX } from './ui/RegionUnlockFX'
 import { ControlsHUD } from './ui/ControlsHUD'
@@ -133,10 +135,14 @@ async function init() {
 
   const collectedItemIds = new Set<string>()
   if (saveData) {
+    // 수집한 id는 중복 스폰 방지용으로만 필요 — weight 반영은 totalCollected로 별도 복원.
     for (const id of saveData.collectedItemIds) {
       collectedItemIds.add(id)
-      progressSystem.collect(id)
     }
+    progressSystem.setTotalCollected(
+      saveData.totalCollected ?? saveData.collectedItemIds.length,
+      saveData.collectedItemIds,
+    )
     for (const regionId of saveData.unlockedRegions) {
       regionManager.unlockRegion(regionId)
     }
@@ -188,7 +194,8 @@ async function init() {
     progressSystem.getTotalCollected(),
     progressSystem.getNextLevelThreshold(),
     initialRegion.name,
-    initialRegion.emoji
+    initialRegion.emoji,
+    initialRegion.specialty?.emoji
   )
 
   collectFX = new CollectFX(scene)
@@ -208,15 +215,21 @@ async function init() {
       unlockedRegions: regionManager.getUnlockedRegions(),
       playerPosition: { x: pos.x, z: pos.z },
       tutorialSeen,
+      totalCollected: progressSystem.getTotalCollected(),
     }
   }
 
-  itemSystem = new ItemSystem(scene, collectedItemIds, (id) => {
-    progressSystem.collect(id)
+  itemSystem = new ItemSystem(scene, collectedItemIds, (id, type) => {
+    progressSystem.collect(id, ITEM_WEIGHT[type])
     playMeow()
     character.playGesturePositive()
-    const colors = [0xffe066, 0xffb347, 0xb39ddb]
-    const col = colors[Math.floor(Math.random() * colors.length)]
+    // 특산품은 기본과 구분되는 색상으로 수집 FX
+    const baseColors = [0xffe066, 0xffb347, 0xb39ddb]
+    // Partial로 선언해 특산품 4종만 엔트리를 가짐. 기본 타입은 baseColors로 폴백.
+    const specialtyColors: Partial<Record<ItemType, number>> = {
+      flower: 0xff8fb1, fish: 0x7ec8e3, clover: 0x7ccc4a, droplet: 0x6ec8ff,
+    }
+    const col = specialtyColors[type] ?? baseColors[Math.floor(Math.random() * baseColors.length)]
     const pos = character.getPosition()
     collectFX!.spawn(pos.x, pos.y + 1.0, pos.z, col)
     const ri = currentRegionInfo()
@@ -224,7 +237,8 @@ async function init() {
       progressSystem.getTotalCollected(),
       progressSystem.getNextLevelThreshold(),
       ri.name,
-      ri.emoji
+      ri.emoji,
+      ri.specialty?.emoji
     )
     saveSystem.save(buildSaveData())
   })
@@ -404,7 +418,8 @@ async function init() {
         progressSystem.getTotalCollected(),
         progressSystem.getNextLevelThreshold(),
         info.name,
-        info.emoji
+        info.emoji,
+        info.specialty?.emoji
       )
     }
 

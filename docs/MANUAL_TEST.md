@@ -135,5 +135,20 @@ Chrome → F12 → Cmd+Shift+M → 디바이스 프리셋 선택
 - `src/ui/VirtualJoystick.ts`, `src/ui/MobileActionButtons.ts`, `src/ui/LandingScreen.ts`
 - `src/ui/Toast.ts`, `src/ui/HelpButton.ts`, `src/ui/TutorialModal.ts`
 - `src/main.ts`의 init 또는 animate 루프
-- `src/game/SaveSystem.ts` (특히 `tutorialSeen` 플래그)
+- `src/game/SaveSystem.ts` (특히 `tutorialSeen`/`totalCollected` 플래그)
+- `src/game/ItemTypes.ts`, `src/game/RegionManager.ts`, `src/world/ChunkGenerator.ts`, `src/game/ItemSystem.ts` (특산품 경로)
+- `src/ui/HUD.ts`, `src/ui/RegionUnlockFX.ts`
 - 새로운 입력 디바이스 추가 (게임패드 등)
+
+---
+
+## 지역 특산품 체크 (Wave 2 #1)
+
+- [ ] HUD 지역명 옆에 특산품 이모지가 표시됨 (초원 🌸 / 항구 🐟 / 숲 🍀 / 황야 💧)
+- [ ] 지역 이동 시 HUD 이모지가 해당 지역 특산품으로 교체됨
+- [ ] 각 지역을 10분 이상 돌아다녔을 때 특산품이 최소 1개는 목격됨 (15% 확률 × 여러 청크)
+- [ ] 특산품 수집 시 한 번에 `totalCollected`가 3 증가 (HUD 카운트 숫자로 확인)
+- [ ] 수집 FX 색이 특산품별로 다름 (꽃=분홍, 물고기=시안, 클로버=초록, 물방울=파랑)
+- [ ] 지역 잠금 해제 토스트 하단에 `— 🍀 네잎클로버가 자라요` 같은 안내가 포함됨
+- [ ] 예전 세이브 이어서 시작해도 `totalCollected`가 `collectedItemIds.length`로 폴백돼 이상한 값 아님
+- [ ] 특산품 수집 후 새로고침 → 카운트/레벨이 정확히 복원됨 (weight=3 유지)
