@@ -28,9 +28,8 @@ import { AssetManager, ASSET_MANIFEST } from './assets/AssetManager'
 import { SkySystem } from './world/SkySystem'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
-// 토스트·모달 모두 `\n`은 pre-line 렌더로 실제 줄바꿈, `\n\n`은 빈 줄로 섹션 구분.
-const TUTORIAL_TOAST_MESSAGE = '마을을 산책하면서 아이템을 모으고 새로운 지역을 열어보세요 ✨\n\n💡 DASH를 하면 달릴 수 있어요🐾'
-const TUTORIAL_MODAL_MESSAGE = '산책냥과 함께 마을을 산책하면서 아이템을 모으고,\n새로운 지역을 열어보세요✨\n\n💡 DASH를 하면 달릴 수 있어요🐾'
+// 토스트·모달 공용 본문. pre-line 렌더로 \n은 실제 줄바꿈, \n\n은 섹션 구분 빈 줄.
+const TUTORIAL_MESSAGE = '산책냥과 함께 마을을 산책하면서 아이템을 모으고,\n새로운 지역을 열어보세요✨\n\n💡 DASH를 하면 달릴 수 있어요🐾'
 const TUTORIAL_EMOJI = '🐈'
 
 let renderer: THREE.WebGLRenderer | null = null
@@ -157,7 +156,7 @@ async function init() {
 
   // 튜토리얼 안내 — 최초 1회 토스트 + 언제든 `?` 버튼으로 모달 재호출.
   // 모바일은 좌하단이 조이스틱 자리라 `?`를 top-right로 옮김.
-  tutorialModal = new TutorialModal(TUTORIAL_MODAL_MESSAGE, TUTORIAL_EMOJI)
+  tutorialModal = new TutorialModal(TUTORIAL_MESSAGE, TUTORIAL_EMOJI)
   helpButton = new HelpButton({
     position: isMobile ? 'top-right' : 'bottom-left',
     onClick: () => tutorialModal?.open(),
@@ -166,7 +165,7 @@ async function init() {
     // 랜딩 페이드아웃 후 첫 프레임이 보이면 자연스럽게 토스트 띄움.
     // save는 실제로 토스트가 뜬 뒤 기록 — 700ms 안에 탭 닫히면 다음 세션에서 한 번 더 볼 수 있게.
     tutorialTimerId = setTimeout(() => {
-      toast?.show(TUTORIAL_TOAST_MESSAGE, TUTORIAL_EMOJI, 'tutorial', 0, 5500, { wrap: true })
+      toast?.show(TUTORIAL_MESSAGE, TUTORIAL_EMOJI, 'tutorial', 0, 5500, { wrap: true })
       tutorialSeen = true
       saveSystem.save(buildSaveData())
       tutorialTimerId = null
