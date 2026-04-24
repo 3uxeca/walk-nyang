@@ -32,9 +32,9 @@ function injectStyles() {
       white-space: nowrap;
       animation: w3d-toast-in 0.28s cubic-bezier(.34,1.56,.64,1) both;
     }
-    /* 긴 메시지(튜토리얼 등) — 좁은 뷰포트에서 잘리지 않게 자동 줄바꿈 */
+    /* 긴 메시지(튜토리얼 등) — 좁은 뷰포트 자동 줄바꿈 + 개행(\\n) 실제 줄바꿈 렌더 */
     .w3d-toast-generic.w3d-toast-wrap {
-      white-space: normal;
+      white-space: pre-line;
       max-width: min(90vw, 420px);
       text-align: center;
       line-height: 1.45;

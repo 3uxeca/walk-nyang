@@ -28,9 +28,9 @@ import { AssetManager, ASSET_MANIFEST } from './assets/AssetManager'
 import { SkySystem } from './world/SkySystem'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
-// 토스트는 짧고 압축된 한 줄. 모달은 더 길고 서사적 — `\n`은 pre-line 렌더로 실제 줄바꿈 표시.
-const TUTORIAL_TOAST_MESSAGE = '마을을 산책하면서 아이템을 모으고 새로운 지역을 열어보세요 ✨'
-const TUTORIAL_MODAL_MESSAGE = '산책냥과 함께 마을을 산책하면서 아이템을 모으고,\n새로운 지역을 열어보세요✨'
+// 토스트·모달 모두 `\n`은 pre-line 렌더로 실제 줄바꿈, `\n\n`은 빈 줄로 섹션 구분.
+const TUTORIAL_TOAST_MESSAGE = '마을을 산책하면서 아이템을 모으고 새로운 지역을 열어보세요 ✨\n\n💡 DASH를 하면 달릴 수 있어요🐾'
+const TUTORIAL_MODAL_MESSAGE = '산책냥과 함께 마을을 산책하면서 아이템을 모으고,\n새로운 지역을 열어보세요✨\n\n💡 DASH를 하면 달릴 수 있어요🐾'
 const TUTORIAL_EMOJI = '🐈'
 
 let renderer: THREE.WebGLRenderer | null = null
