@@ -141,9 +141,9 @@
 | 1 | 지역 × 아이템 매트릭스 + 특산품 4종 (꽃·물고기·클로버·물방울) weight 3 + HUD/토스트 힌트 | ✅ | [`wave2-01`](reviews/wave2-01-region-specialty-items.md) | `6dbe74a` |
 | 2 | 지역별 소품 팔레트 (flower/bench/tree/lamp) + 집 앞 우편함 세트 | ✅ | [`wave2-02`](reviews/wave2-02-region-prop-palette.md) | `6aa9350` |
 | 3 | ~~고양이 테마 아이템 (츄르/장난감/깃털)~~ → Wave 3 "고양이 커스터마이즈"로 이관 | 🚫 | — | Wave 2 #1의 지역 특산품과 중복 성격, Wave 3에서 "수집 → 꾸미기 언락"으로 재정의 |
-| 4 | 지역별 필수 수집 아이템 — 특산품 3개 모으기 조건으로 언락 강화 | ⏳ | — | — |
+| 4 | 지역별 필수 수집 아이템 — 특산품 3개 모으기 조건으로 언락 강화 | ✅ | [`wave2-04`](reviews/wave2-04-specialty-unlock.md) | `0d27007` |
 
-**진행**: 2/3 (#1·#2 완료, #3 이관, #4 진행 예정)
+**진행**: 3/3 완료 · Wave 2 종료 — 매트릭스·소품 팔레트·언락 조건 강화가 하나의 흐름으로 맞물림.
 
 ---
 
@@ -266,9 +266,9 @@ Phase 0–5 (완료)
 | 총 작업 기간 | 2026-04-17 ~ 진행 중 (약 7일 활성) |
 | OMC 파이프라인 사용 | deep-interview · ralplan · ralph · code-reviewer · ai-slop-cleaner |
 | 사용 에이전트 타입 | 9종 (planner · architect · critic · executor · designer · code-reviewer · qa-tester · scientist · verifier) |
-| 누적 커밋 수 | 42+ (main 기준) |
-| 테스트 커버리지 | 95 tests · 10 files · 100% pass |
-| 빌드 | TypeScript strict · Vite 6 · 분리된 청크 (app 81KB / three 620KB gzip) |
+| 누적 커밋 수 | 44+ (main 기준) |
+| 테스트 커버리지 | 99 tests · 10 files · 100% pass |
+| 빌드 | TypeScript strict · Vite 6 · 분리된 청크 (app 82KB / three 620KB gzip) |
 | 프로덕션 배포 | https://3uxeca.github.io/walk-nyang/ (자동 배포) |
 
 ---
@@ -285,4 +285,4 @@ Phase 0–5 (완료)
 
 ---
 
-*문서 마지막 업데이트: 2026-04-24 · Wave 2 #1 (특산품) + #2 (소품 팔레트 + 집 앞 우편함) 완료, #3 Wave 3로 이관*
+*문서 마지막 업데이트: 2026-04-24 · Wave 2 전체 완료 (#1 특산품 · #2 소품 팔레트 · #4 언락 조건 강화)*
