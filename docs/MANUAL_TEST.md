@@ -55,12 +55,18 @@ Chrome → F12 → Cmd+Shift+M → 디바이스 프리셋 선택
 - [ ] 누르고 있어도 점프는 한 번만 (홀드해도 반복 안 됨)
 - [ ] 탭할 때 시각적 피드백 (active 색상)
 
-### 5. DASH 버튼
+### 5. DASH 버튼 (토글)
 
-- [ ] 누르고 있는 동안 캐릭터가 빠르게 이동
-- [ ] DASH + 조이스틱 동시에 → 빠르게 이동
-- [ ] DASH 누른 채 JUMP 탭 → 일반 점프보다 더 높이 (Wave 1 #5)
-- [ ] DASH 중 카메라 FOV 확장 + 먼지 트레일 발생 (Wave 1 #4)
+> Wave 1.5 Hotfix에서 holder→toggle로 변경. 모바일/데스크탑 공통.
+
+- [ ] 한 번 탭 → DASH ON (버튼 오렌지색 유지). 다시 탭 → OFF (원래 색 복귀)
+- [ ] DASH ON 상태에서 조이스틱만 조작해도 계속 빠르게 이동 (조이스틱+DASH 동시 유지 불필요)
+- [ ] DASH ON 상태에서 JUMP 탭 → 일반 점프보다 더 높이 (Wave 1 #5)
+- [ ] DASH ON 중 카메라 FOV 확장 + 먼지 트레일 발생 (Wave 1 #4)
+- [ ] DASH ON 상태에서 멈춰 있으면 트레일/FOV 효과 없음 (이동 시에만 dash 적용 — 의도된 동작)
+- [ ] 데스크탑: Shift 한 번 누르면 ON, 다시 누르면 OFF. OS 키리피트(길게 누름) 중에는 추가 토글 없음
+- [ ] 데스크탑: DASH ON 상태에서 alt-tab 후 돌아오면 dash가 OFF로 자동 초기화 (blur 시 안전 해제)
+- [ ] ControlsHUD의 Shift 키 하이라이트가 DASH ON 상태 동안 유지
 
 ### 6. 카메라
 
@@ -98,7 +104,7 @@ Chrome → F12 → Cmd+Shift+M → 디바이스 프리셋 선택
 
 - `isMobileEnvironment()`는 init 시점에 한 번만 평가 — 런타임 리사이즈 무시
 - 로고 이미지 1회만 시도 — 네트워크 일시 단절 후 재시도 없음 (`onerror`로 이모지 폴백만)
-- DASH 버튼은 finger leave 시 release (스와이프 시 의도와 다를 수 있음)
+- DASH 토글 상태는 모바일에서 페이지 재진입(스크린락 해제 등) 후에도 유지됨. 시각 피드백(버튼 오렌지)으로는 상태 확인 가능 — 원치 않으면 한 번 더 탭해 OFF. (데스크탑은 blur 시 자동 OFF)
 
 ---
 

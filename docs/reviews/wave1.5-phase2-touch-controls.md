@@ -15,7 +15,7 @@
   - 반경 50px, 데드존 0.15, 정규화 벡터 `{ x, y }` in [-1, 1] 공개
 - `src/ui/MobileActionButtons.ts` — 우하단 JUMP / DASH 버튼
   - JUMP: edge-triggered (`consumeJump()` 후 리셋)
-  - DASH: held 방식 (`dashHeld: boolean`)
+  - DASH: held 방식 (`dashHeld: boolean`) · Wave 1.5 Hotfix에서 토글(`dashActive`)로 변경됨
 - `src/character/TouchInputSource.ts` — `InputSource` 구현체
   - `update(dt)`에서 조이스틱 벡터 → 방향 boolean 변환 (축 임계값 0.3)
   - `consumeJump()`는 MobileActionButtons로 위임

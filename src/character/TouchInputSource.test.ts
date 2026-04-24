@@ -6,7 +6,7 @@ import type { MobileActionButtons } from '../ui/MobileActionButtons'
 /**
  * 의존성 주입 디자인 덕에 DOM 없이 stub만으로 모든 매핑 검증이 가능.
  * VirtualJoystick은 `vector: JoystickVector`만, MobileActionButtons는
- * `dashHeld`와 `consumeJump()`만 노출하면 충분.
+ * `dashActive`와 `consumeJump()`만 노출하면 충분.
  *
  * NOTE: 테스트 값들은 TouchInputSource.axisThreshold = 0.3 기준.
  * threshold가 변경되면 이 파일의 boundary 테스트와 설명도 함께 수정해야 함.
@@ -17,7 +17,7 @@ class FakeJoystick {
 }
 
 class FakeButtons {
-  dashHeld = false
+  dashActive = false
   private jumpPressed = false
   press() { this.jumpPressed = true }
   consumeJump(): boolean {
@@ -120,12 +120,15 @@ describe('TouchInputSource', () => {
     expect(src.state.right).toBe(false)
   })
 
-  it('dashHeld는 그대로 dash로 전달', () => {
+  it('dashActive는 그대로 dash로 전달 (토글 상태 반영)', () => {
     const { btn, src } = makeSource()
-    btn.dashHeld = true
+    btn.dashActive = true
     src.update(0.016)
     expect(src.state.dash).toBe(true)
-    btn.dashHeld = false
+    // 여러 프레임 동안 토글 상태 유지
+    src.update(0.016)
+    expect(src.state.dash).toBe(true)
+    btn.dashActive = false
     src.update(0.016)
     expect(src.state.dash).toBe(false)
   })

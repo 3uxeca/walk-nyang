@@ -2,7 +2,8 @@ import * as THREE from 'three'
 
 /**
  * 입력 상태.
- * - held 필드(forward/backward/left/right/dash): 키/버튼이 눌린 동안 true
+ * - held 필드(forward/backward/left/right): 키/버튼이 눌린 동안 true
+ * - 토글 필드(dash): 입력 소스에서 누를 때마다 반전, 다음 누름까지 유지
  * - 엣지 필드(jump): 눌린 프레임에 한해 true, 다음 프레임 자동 false
  */
 export interface InputState {
@@ -60,6 +61,7 @@ export class KeyboardInputSource implements InputSource {
   private disposed = false
   private onKeyDown: (e: KeyboardEvent) => void
   private onKeyUp: (e: KeyboardEvent) => void
+  private onBlur: () => void
 
   constructor() {
     this.onKeyDown = (e: KeyboardEvent) => {
@@ -69,7 +71,10 @@ export class KeyboardInputSource implements InputSource {
         case 'KeyA': case 'ArrowLeft':  this.state.left = true; break
         case 'KeyD': case 'ArrowRight': this.state.right = true; break
         case 'Space':                   this.jumpPressed = true; break       // edge
-        case 'ShiftLeft': case 'ShiftRight': this.state.dash = true; break
+        // DASH는 토글: 누른 프레임(edge)에만 상태 반전. OS 자동 키반복(e.repeat=true)은 무시.
+        case 'ShiftLeft': case 'ShiftRight':
+          if (!e.repeat) this.state.dash = !this.state.dash
+          break
       }
     }
     this.onKeyUp = (e: KeyboardEvent) => {
@@ -78,12 +83,18 @@ export class KeyboardInputSource implements InputSource {
         case 'KeyS': case 'ArrowDown':  this.state.backward = false; break
         case 'KeyA': case 'ArrowLeft':  this.state.left = false; break
         case 'KeyD': case 'ArrowRight': this.state.right = false; break
-        case 'ShiftLeft': case 'ShiftRight': this.state.dash = false; break
-        // Space keyup은 edge 소비 후 자동 리셋이라 별도 처리 없음
+        // Shift/Space는 keyup에서 리셋 안 함 — dash는 토글이라 유지, jump는 edge 소비로 자동 false
       }
     }
+    // dash 토글이라 alt-tab/포커스 상실 시 Shift keyup을 놓치면 "켜진 채" 방치될 수 있음.
+    // 포커스 상실을 dash OFF로 정의해 안전한 기본값 유지.
+    this.onBlur = () => {
+      this.state.dash = false
+    }
+
     window.addEventListener('keydown', this.onKeyDown)
     window.addEventListener('keyup', this.onKeyUp)
+    window.addEventListener('blur', this.onBlur)
   }
 
   consumeJump(): boolean {
@@ -97,6 +108,8 @@ export class KeyboardInputSource implements InputSource {
     this.disposed = true
     window.removeEventListener('keydown', this.onKeyDown)
     window.removeEventListener('keyup', this.onKeyUp)
+    window.removeEventListener('blur', this.onBlur)
+    this.state.dash = false
   }
 }
 
@@ -144,6 +157,8 @@ export class Controller {
     this.input.backward = this.sources.some(s => s.state.backward)
     this.input.left     = this.sources.some(s => s.state.left)
     this.input.right    = this.sources.some(s => s.state.right)
+    // dash는 토글이라 서로 다른 소스 간 상호 취소가 되지 않음 (각 소스의 토글은 독립).
+    // 현재 UX는 데스크탑/모바일 소스 동시 활성 시나리오가 없다는 전제에 의존.
     this.input.dash     = this.sources.some(s => s.state.dash)
 
     let jump = false

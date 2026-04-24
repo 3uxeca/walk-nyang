@@ -38,7 +38,7 @@ export class TouchInputSource implements InputSource {
     this.state.backward = v.y >  this.axisThreshold
     this.state.left     = v.x < -this.axisThreshold
     this.state.right    = v.x >  this.axisThreshold
-    this.state.dash     = this.buttons.dashHeld
+    this.state.dash     = this.buttons.dashActive
   }
 
   consumeJump(): boolean {

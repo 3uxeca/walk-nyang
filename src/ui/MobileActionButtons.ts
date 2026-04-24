@@ -48,15 +48,15 @@ function injectStyles() {
 /**
  * 모바일 액션 버튼 (JUMP + DASH).
  * - JUMP: 탭하면 엣지 이벤트 (consumeJump로 한번 소비)
- * - DASH: 누르고 있는 동안 held=true
+ * - DASH: 탭할 때마다 토글 (다시 탭할 때까지 dashActive 유지). 조이스틱과 동시 조작 불편을 해소.
  */
 export class MobileActionButtons {
   private wrap: HTMLDivElement
   private jumpBtn: HTMLButtonElement
   private dashBtn: HTMLButtonElement
 
-  /** DASH 홀드 상태 (외부에서 읽기 전용으로 사용) */
-  dashHeld = false
+  /** DASH 토글 상태 (외부에서 읽기 전용으로 사용) */
+  dashActive = false
   /** JUMP 엣지 플래그 — consumeJump()로 소비됨 */
   private jumpPressed = false
 
@@ -76,10 +76,8 @@ export class MobileActionButtons {
     this.jumpBtn.addEventListener('pointercancel', this.onJumpUp)
     this.jumpBtn.addEventListener('pointerleave', this.onJumpUp)
 
+    // DASH는 토글이라 pointerdown 엣지 하나만 구독. up/cancel/leave는 의미 없음.
     this.dashBtn.addEventListener('pointerdown', this.onDashDown)
-    this.dashBtn.addEventListener('pointerup', this.onDashUp)
-    this.dashBtn.addEventListener('pointercancel', this.onDashUp)
-    this.dashBtn.addEventListener('pointerleave', this.onDashUp)
   }
 
   private makeBtn(label: string): HTMLButtonElement {
@@ -101,14 +99,9 @@ export class MobileActionButtons {
   }
 
   private onDashDown = (e: PointerEvent) => {
-    this.dashHeld = true
-    this.dashBtn.classList.add('w3d-mbtn-active')
-    this.dashBtn.setPointerCapture(e.pointerId)
+    this.dashActive = !this.dashActive
+    this.dashBtn.classList.toggle('w3d-mbtn-active', this.dashActive)
     e.preventDefault()
-  }
-  private onDashUp = () => {
-    this.dashHeld = false
-    this.dashBtn.classList.remove('w3d-mbtn-active')
   }
 
   /** 이번 프레임에 JUMP가 눌렸는지 — 한 번 true 반환 후 리셋 */
@@ -124,11 +117,8 @@ export class MobileActionButtons {
     this.jumpBtn.removeEventListener('pointercancel', this.onJumpUp)
     this.jumpBtn.removeEventListener('pointerleave', this.onJumpUp)
     this.dashBtn.removeEventListener('pointerdown', this.onDashDown)
-    this.dashBtn.removeEventListener('pointerup', this.onDashUp)
-    this.dashBtn.removeEventListener('pointercancel', this.onDashUp)
-    this.dashBtn.removeEventListener('pointerleave', this.onDashUp)
     this.wrap.remove()
-    this.dashHeld = false
+    this.dashActive = false
     this.jumpPressed = false
   }
 }
