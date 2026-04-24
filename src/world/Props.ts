@@ -99,7 +99,37 @@ function makeMailbox(): THREE.Group {
 }
 
 export type PropType = 'tree' | 'flower' | 'lamp' | 'bench' | 'mailbox'
-export const PROP_TYPES: PropType[] = ['tree', 'flower', 'lamp', 'bench', 'mailbox']
+
+/**
+ * 무작위 배치 대상 환경 소품 — mailbox는 집(house)과 세트로 별도 스폰되므로 제외.
+ */
+export const ENVIRONMENTAL_PROP_TYPES: readonly PropType[] = ['tree', 'flower', 'lamp', 'bench'] as const
+
+/**
+ * 지역별 대표 소품 가중치.
+ * - 기본 weight = 1
+ * - 해당 지역 시그니처 소품만 weight = 3 (총 6 중 3, 약 50% 빈도)
+ * - 누락된 지역/소품은 자동으로 기본값 1 폴백
+ */
+export const PROP_WEIGHT_BY_REGION: Record<number, Partial<Record<PropType, number>>> = {
+  0: { flower: 3 },  // 초원
+  1: { bench: 3 },   // 항구
+  2: { tree: 3 },    // 숲
+  3: { lamp: 3 },    // 황야
+}
+
+/** 지역 rng에서 가중치 기반 환경 소품 1종 선택. */
+export function pickEnvironmentalProp(regionId: number, rng: () => number): PropType {
+  const override = PROP_WEIGHT_BY_REGION[regionId] ?? {}
+  const weights = ENVIRONMENTAL_PROP_TYPES.map(t => override[t] ?? 1)
+  const total = weights.reduce((a, b) => a + b, 0)
+  let r = rng() * total
+  for (let i = 0; i < ENVIRONMENTAL_PROP_TYPES.length; i++) {
+    r -= weights[i]
+    if (r < 0) return ENVIRONMENTAL_PROP_TYPES[i]
+  }
+  return ENVIRONMENTAL_PROP_TYPES[ENVIRONMENTAL_PROP_TYPES.length - 1]  // FP 경계 폴백
+}
 
 export function createProp(type: PropType): THREE.Group {
   const assets = AssetManager.getInstance()

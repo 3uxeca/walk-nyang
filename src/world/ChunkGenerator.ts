@@ -2,7 +2,7 @@ import { createSeededNoise } from '../utils/noise'
 import { seededRandom, chunkSeed } from '../utils/rng'
 import { BUILDING_TYPES } from './Buildings'
 import type { BuildingType } from './Buildings'
-import { PROP_TYPES } from './Props'
+import { pickEnvironmentalProp } from './Props'
 import type { PropType } from './Props'
 import { regionForChunk, getRegionInfo } from '../game/RegionManager'
 import type { ItemType } from '../game/ItemTypes'
@@ -10,6 +10,14 @@ import { BASE_ITEM_TYPES } from '../game/ItemTypes'
 
 /** 지역 특산품 스폰 확률 (청크당 1회 베르누이 시도) */
 export const SPECIALTY_SPAWN_CHANCE = 0.15
+
+/**
+ * house 중심에서 mailbox를 얼마나 떨어뜨릴지.
+ * - Kenney GLTF house는 scale=5 × native ~2 ≈ 10 유닛 크기 → radius ~5
+ * - 5.0 오프셋이면 mailbox가 집 외곽 바로 앞(도로변)에 위치
+ * - 청크 중심 쪽으로 밀어내므로 localX/Z = ±12 → ±7, 도로 밴드(|l|<7) 밖에 안착
+ */
+const MAILBOX_OFFSET = 5.0
 
 export const CHUNK_SIZE = 32  // 월드 유닛
 
@@ -67,17 +75,16 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
       const n = noise(worldX * 0.05, worldZ * 0.05)
       if (n > 0.1) {
         const buildingTypeIdx = Math.floor(rng() * BUILDING_TYPES.length)
-        buildings.push({
-          type: BUILDING_TYPES[buildingTypeIdx],
-          x: worldX,
-          z: worldZ,
-          rotation: Math.floor(rng() * 4) * (Math.PI / 2),
-        })
+        const type = BUILDING_TYPES[buildingTypeIdx]
+        const rotation = Math.floor(rng() * 4) * (Math.PI / 2)
+        buildings.push({ type, x: worldX, z: worldZ, rotation })
       }
     }
   }
 
-  // 소품 생성 (3-5개, 도로 밴드 제외, 청크 내부에만)
+  const regionId = regionForChunk(cx, cz)
+
+  // 환경 소품 생성 (3-5개, 도로 밴드 제외, 청크 내부에만). 지역별 시그니처 소품 가중치 적용.
   const PROP_ROAD_BAND = 7
   const propCount = 3 + Math.floor(rng() * 3)
   for (let i = 0; i < propCount; i++) {
@@ -87,10 +94,31 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
     const lz = Math.abs(pz - (cz + 0.5) * CHUNK_SIZE)
     if (lx < PROP_ROAD_BAND || lz < PROP_ROAD_BAND) continue
     props.push({
-      type: PROP_TYPES[Math.floor(rng() * PROP_TYPES.length)],
+      type: pickEnvironmentalProp(regionId, rng),
       x: px,
       z: pz,
       rotation: rng() * Math.PI * 2,
+    })
+  }
+
+  // house 동반 mailbox — 각 house 옆에 1개씩 확정 배치 ("집 앞 우편함").
+  // 청크 중심을 향한 방향으로 오프셋해 도로 밴드에 걸리지 않도록.
+  for (const b of buildings) {
+    if (b.type !== 'house') continue
+    const chunkCenterX = (cx + 0.5) * CHUNK_SIZE
+    const chunkCenterZ = (cz + 0.5) * CHUNK_SIZE
+    // 주 축을 따라 안쪽으로 — localX/Z 중 절대값이 큰 쪽으로 밀어내는 단위 벡터
+    const dxToCenter = chunkCenterX - b.x
+    const dzToCenter = chunkCenterZ - b.z
+    const useX = Math.abs(dxToCenter) >= Math.abs(dzToCenter)
+    const off = useX
+      ? { x: Math.sign(dxToCenter) * MAILBOX_OFFSET, z: 0 }
+      : { x: 0, z: Math.sign(dzToCenter) * MAILBOX_OFFSET }
+    props.push({
+      type: 'mailbox',
+      x: b.x + off.x,
+      z: b.z + off.z,
+      rotation: Math.atan2(-off.x, -off.z),  // mailbox가 집을 향하도록
     })
   }
 
@@ -108,7 +136,6 @@ export function generateChunk(cx: number, cz: number, worldSeed: number): ChunkD
   }
 
   // 지역 특산품: 확률적으로 1개 추가. 수집 시 weight=3이라 기본보다 훨씬 값짐.
-  const regionId = regionForChunk(cx, cz)
   const specialty = getRegionInfo(regionId).specialty
   if (specialty && rng() < SPECIALTY_SPAWN_CHANCE) {
     const ix = (cx + 0.5) * CHUNK_SIZE + (rng() - 0.5) * CHUNK_SIZE * 0.55
