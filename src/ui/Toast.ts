@@ -44,6 +44,13 @@ function injectStyles() {
       margin-right: 6px;
       font-size: 15px;
     }
+    /* wrap 모드에선 이모지를 단독 블록으로 크게 — 모달과 톤 일치 */
+    .w3d-toast-generic.w3d-toast-wrap .w3d-toast-emoji {
+      display: block;
+      margin: 0 auto 14px;
+      font-size: 32px;
+      line-height: 1;
+    }
   `
   document.head.appendChild(s)
 }
