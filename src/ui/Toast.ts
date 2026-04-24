@@ -38,6 +38,7 @@ function injectStyles() {
       max-width: min(90vw, 420px);
       text-align: center;
       line-height: 1.45;
+      padding: 18px 22px;
     }
     .w3d-toast-generic .w3d-toast-emoji {
       display: inline-block;
