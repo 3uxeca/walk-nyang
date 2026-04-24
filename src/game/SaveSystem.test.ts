@@ -106,4 +106,22 @@ describe('SaveSystem', () => {
     expect(loaded?.totalCollected).toBeUndefined()
     // 호출자는 `?? collectedItemIds.length` 폴백을 사용한다 (main.ts 계약)
   })
+
+  it('specialtyCountByRegion round-trip', () => {
+    const data: SaveData = {
+      ...makeValidData(),
+      specialtyCountByRegion: { 0: 3, 1: 2, 2: 0, 3: 1 },
+    }
+    sys.save(data)
+    const loaded = sys.load()
+    expect(loaded?.specialtyCountByRegion).toEqual({ 0: 3, 1: 2, 2: 0, 3: 1 })
+  })
+
+  it('specialtyCountByRegion 필드가 없는 예전 세이브도 로드 성공', () => {
+    const legacy = makeValidData()
+    sys.save(legacy)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.specialtyCountByRegion).toBeUndefined()
+  })
 })

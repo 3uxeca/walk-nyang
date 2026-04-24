@@ -20,6 +20,11 @@ export interface SaveData {
    * 필드가 없으면 `collectedItemIds.length`로 폴백 (예전 세이브 호환).
    */
   totalCollected?: number
+  /**
+   * 지역별 특산품 수집 카운트 (지역 ID → 개수).
+   * 언락 조건 판정의 권위 있는 출처. 필드 부재 시 빈 객체로 폴백.
+   */
+  specialtyCountByRegion?: Record<number, number>
 }
 
 function isValidSaveShape(v: unknown): v is SaveData {

@@ -5,9 +5,9 @@ import { ThirdPersonCamera } from './camera/ThirdPersonCamera'
 import { ChunkManager, WORLD_SEED } from './world/ChunkManager'
 import { ItemSystem } from './game/ItemSystem'
 import { ProgressSystem } from './game/ProgressSystem'
-import { RegionManager, regionForChunk, getRegionInfo } from './game/RegionManager'
+import { RegionManager, regionForChunk, getRegionInfo, REGION_NAMES } from './game/RegionManager'
 import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION } from './game/SaveSystem'
-import { ITEM_WEIGHT } from './game/ItemTypes'
+import { ITEM_WEIGHT, SPECIALTY_REGION_BY_TYPE } from './game/ItemTypes'
 import type { ItemType } from './game/ItemTypes'
 import { HUD } from './ui/HUD'
 import { RegionUnlockFX } from './ui/RegionUnlockFX'
@@ -143,6 +143,9 @@ async function init() {
       saveData.totalCollected ?? saveData.collectedItemIds.length,
       saveData.collectedItemIds,
     )
+    if (saveData.specialtyCountByRegion) {
+      progressSystem.setSpecialtyCounts(saveData.specialtyCountByRegion)
+    }
     for (const regionId of saveData.unlockedRegions) {
       regionManager.unlockRegion(regionId)
     }
@@ -216,11 +219,18 @@ async function init() {
       playerPosition: { x: pos.x, z: pos.z },
       tutorialSeen,
       totalCollected: progressSystem.getTotalCollected(),
+      specialtyCountByRegion: progressSystem.getSpecialtyCountsSnapshot(),
     }
   }
 
   itemSystem = new ItemSystem(scene, collectedItemIds, (id, type) => {
-    progressSystem.collect(id, ITEM_WEIGHT[type])
+    // collect가 true면 실제 신규 수집 — dedup에 걸렸으면 specialty 카운트도 올리지 않음.
+    const isNew = progressSystem.collect(id, ITEM_WEIGHT[type])
+    if (!isNew) return
+    const specialtyRegion = SPECIALTY_REGION_BY_TYPE[type]
+    if (specialtyRegion !== undefined) {
+      progressSystem.recordSpecialty(specialtyRegion)
+    }
     playMeow()
     character.playGesturePositive()
     // 특산품은 기본과 구분되는 색상으로 수집 FX
@@ -244,10 +254,12 @@ async function init() {
   })
   chunkManager.setItemSystem(itemSystem)
 
-  progressSystem.onLevelUp = (_newLevel, regionId) => {
-    regionManager.unlockRegion(regionId)
-    chunkManager!.onRegionUnlocked(regionId)
-    regionUnlockFX.showUnlock(regionId)
+  // 특산품 3개 모이면 다음 지역 언락. 카탈로그 밖 지역 ID는 여기서 가드.
+  progressSystem.onRegionUnlock = (nextRegionId) => {
+    if (!(nextRegionId in REGION_NAMES)) return
+    regionManager.unlockRegion(nextRegionId)
+    chunkManager!.onRegionUnlocked(nextRegionId)
+    regionUnlockFX.showUnlock(nextRegionId)
   }
 
   controller = new Controller()

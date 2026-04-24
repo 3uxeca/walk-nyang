@@ -18,3 +18,14 @@ export const ITEM_WEIGHT: Record<ItemType, number> = {
   star: 1, coin: 1, gem: 1,
   flower: 3, fish: 3, clover: 3, droplet: 3,
 }
+
+/**
+ * 특산품 → 해당 지역 ID 역매핑. 언락 조건 판정에 사용.
+ * 기본 아이템(star/coin/gem)은 엔트리 없음 → undefined로 "특산품 아님"을 표현.
+ */
+export const SPECIALTY_REGION_BY_TYPE: Partial<Record<ItemType, number>> = {
+  flower: 0, fish: 1, clover: 2, droplet: 3,
+}
+
+/** 특산품 몇 개 모으면 다음 지역이 언락되는가 */
+export const SPECIALTY_UNLOCK_THRESHOLD = 3
