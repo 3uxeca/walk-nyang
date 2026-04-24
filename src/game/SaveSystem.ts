@@ -9,6 +9,11 @@ export interface SaveData {
   collectedItemIds: string[]
   unlockedRegions: number[]
   playerPosition: { x: number; z: number }
+  /**
+   * 튜토리얼(첫 진입 토스트)을 이미 본 상태인지 여부. 기본값 false.
+   * 필드 자체가 없는 예전 세이브도 정상 로드되어 false로 간주.
+   */
+  tutorialSeen?: boolean
 }
 
 function isValidSaveShape(v: unknown): v is SaveData {

@@ -75,4 +75,19 @@ describe('SaveSystem', () => {
     sys.reset()
     expect(sys.load()).toBeNull()
   })
+
+  it('tutorialSeen 필드가 round-trip으로 보존됨', () => {
+    const data: SaveData = { ...makeValidData(), tutorialSeen: true }
+    sys.save(data)
+    const loaded = sys.load()
+    expect(loaded?.tutorialSeen).toBe(true)
+  })
+
+  it('tutorialSeen 필드가 없는 예전 세이브도 로드 성공 (backward compat)', () => {
+    const legacy = makeValidData()  // tutorialSeen 없이 저장된 예전 데이터 형태
+    sys.save(legacy)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.tutorialSeen).toBeUndefined()
+  })
 })

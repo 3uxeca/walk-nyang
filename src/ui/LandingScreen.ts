@@ -176,7 +176,7 @@ export class LandingScreen {
 
     const hint = document.createElement('div')
     hint.className = 'w3d-landing-hint'
-    hint.textContent = opts.hint ?? '버튼을 누르면 게임이 시작돼요'
+    hint.textContent = opts.hint ?? '🎧 소리를 켜고, 고양이에게 귀 기울여봐요'
     this.el.appendChild(hint)
 
     this.button.addEventListener('click', this.handleStart)

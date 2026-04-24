@@ -56,7 +56,12 @@ export class RegionUnlockFX {
 
     const toast = document.createElement('div')
     toast.className = 'w3d-toast'
-    toast.innerHTML = `🎉 새 지역 해제! <span class="toast-sub">${emoji} ${name}</span>`
+    // textContent 기반 DOM 조립 — region 이름/이모지가 외부 소스로 확장되어도 XSS 안전
+    toast.appendChild(document.createTextNode('🎉 새 지역 해제! '))
+    const sub = document.createElement('span')
+    sub.className = 'toast-sub'
+    sub.textContent = `${emoji} ${name}`
+    toast.appendChild(sub)
     document.body.appendChild(toast)
 
     const DISPLAY_MS = 2800

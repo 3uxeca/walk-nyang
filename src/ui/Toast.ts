@@ -32,6 +32,13 @@ function injectStyles() {
       white-space: nowrap;
       animation: w3d-toast-in 0.28s cubic-bezier(.34,1.56,.64,1) both;
     }
+    /* 긴 메시지(튜토리얼 등) — 좁은 뷰포트에서 잘리지 않게 자동 줄바꿈 */
+    .w3d-toast-generic.w3d-toast-wrap {
+      white-space: normal;
+      max-width: min(90vw, 420px);
+      text-align: center;
+      line-height: 1.45;
+    }
     .w3d-toast-generic .w3d-toast-emoji {
       display: inline-block;
       margin-right: 6px;
@@ -57,8 +64,17 @@ export class Toast {
    * @param emoji 앞에 붙을 이모지
    * @param key 쓰로틀 키 (동일 key는 throttleMs 동안 재표시 안 됨)
    * @param throttleMs 동일 키 재표시 최소 간격
+   * @param displayMs 토스트가 화면에 남는 시간 (fade-out 전까지). 기본 1800ms.
+   * @param opts.wrap true면 긴 메시지 자동 줄바꿈 (좁은 뷰포트에서 잘리지 않음)
    */
-  show(message: string, emoji?: string, key: string = message, throttleMs: number = 1500): void {
+  show(
+    message: string,
+    emoji?: string,
+    key: string = message,
+    throttleMs: number = 1500,
+    displayMs: number = 1800,
+    opts: { wrap?: boolean } = {},
+  ): void {
     const now = performance.now()
     const last = this.lastShownAt.get(key) ?? -Infinity
     if (now - last < throttleMs) return
@@ -71,12 +87,18 @@ export class Toast {
     }
 
     const el = document.createElement('div')
-    el.className = 'w3d-toast-generic'
-    el.innerHTML = (emoji ? `<span class="w3d-toast-emoji">${emoji}</span>` : '') + message
+    el.className = 'w3d-toast-generic' + (opts.wrap ? ' w3d-toast-wrap' : '')
+    // textContent 기반 DOM 조립 — 메시지/이모지에 사용자 입력이 섞여도 XSS 차단
+    if (emoji) {
+      const emoSpan = document.createElement('span')
+      emoSpan.className = 'w3d-toast-emoji'
+      emoSpan.textContent = emoji
+      el.appendChild(emoSpan)
+    }
+    el.appendChild(document.createTextNode(message))
     document.body.appendChild(el)
     this.activeEl = el
 
-    const DISPLAY_MS = 1800
     const FADE_MS = 280
 
     setTimeout(() => {
@@ -85,7 +107,7 @@ export class Toast {
         el.remove()
         if (this.activeEl === el) this.activeEl = null
       }, FADE_MS)
-    }, DISPLAY_MS)
+    }, displayMs)
   }
 
   dispose(): void {

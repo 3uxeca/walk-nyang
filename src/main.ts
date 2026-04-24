@@ -15,6 +15,8 @@ import { VirtualJoystick } from './ui/VirtualJoystick'
 import { MobileActionButtons } from './ui/MobileActionButtons'
 import { TouchInputSource, isMobileEnvironment } from './character/TouchInputSource'
 import { LandingScreen } from './ui/LandingScreen'
+import { HelpButton } from './ui/HelpButton'
+import { TutorialModal } from './ui/TutorialModal'
 import { CollectFX } from './game/CollectFX'
 import { HeartFX } from './game/HeartFX'
 import { DashTrailFX } from './game/DashTrailFX'
@@ -26,6 +28,8 @@ import { AssetManager, ASSET_MANIFEST } from './assets/AssetManager'
 import { SkySystem } from './world/SkySystem'
 
 const AUTOSAVE_INTERVAL_MS = 30_000
+const TUTORIAL_MESSAGE = '마을을 산책하면서 아이템을 모으고 새로운 지역을 열어보세요'
+const TUTORIAL_EMOJI = '🐈'
 
 let renderer: THREE.WebGLRenderer | null = null
 let animationId: number | null = null
@@ -33,6 +37,7 @@ let controller: Controller | null = null
 let chunkManager: ChunkManager | null = null
 let itemSystem: ItemSystem | null = null
 let autosaveTimer: ReturnType<typeof setInterval> | null = null
+let tutorialTimerId: ReturnType<typeof setTimeout> | null = null
 let hud: HUD | null = null
 let controlsHUD: ControlsHUD | null = null
 let toast: Toast | null = null
@@ -40,6 +45,8 @@ let virtualJoystick: VirtualJoystick | null = null
 let mobileButtons: MobileActionButtons | null = null
 let touchInputSource: TouchInputSource | null = null
 let landingScreen: LandingScreen | null = null
+let helpButton: HelpButton | null = null
+let tutorialModal: TutorialModal | null = null
 let collectFX: CollectFX | null = null
 let heartFX: HeartFX | null = null
 let dashTrailFX: DashTrailFX | null = null
@@ -72,7 +79,7 @@ async function init() {
       title: '산책냥',
       subtitle: '귀여운 고양이가 되어 마을을 거닐어 보세요',
       buttonLabel: '시작하기',
-      hint: '버튼을 누르면 게임이 시작돼요',
+      hint: '🎧 소리를 켜고, 고양이에게 귀 기울여봐요',
     })
   })
 
@@ -121,6 +128,7 @@ async function init() {
 
   const saveSystem = new SaveSystem(WORLD_SEED)
   const saveData = saveSystem.load()
+  let tutorialSeen = !!saveData?.tutorialSeen
 
   const collectedItemIds = new Set<string>()
   if (saveData) {
@@ -144,6 +152,25 @@ async function init() {
     controlsHUD = new ControlsHUD()
   }
   toast = new Toast()
+
+  // 튜토리얼 안내 — 최초 1회 토스트 + 언제든 `?` 버튼으로 모달 재호출.
+  // 모바일은 좌하단이 조이스틱 자리라 `?`를 top-right로 옮김.
+  tutorialModal = new TutorialModal(TUTORIAL_MESSAGE, TUTORIAL_EMOJI)
+  helpButton = new HelpButton({
+    position: isMobile ? 'top-right' : 'bottom-left',
+    onClick: () => tutorialModal?.open(),
+  })
+  if (!tutorialSeen) {
+    // 랜딩 페이드아웃 후 첫 프레임이 보이면 자연스럽게 토스트 띄움.
+    // save는 실제로 토스트가 뜬 뒤 기록 — 700ms 안에 탭 닫히면 다음 세션에서 한 번 더 볼 수 있게.
+    tutorialTimerId = setTimeout(() => {
+      toast?.show(TUTORIAL_MESSAGE, TUTORIAL_EMOJI, 'tutorial', 0, 5500, { wrap: true })
+      tutorialSeen = true
+      saveSystem.save(buildSaveData())
+      tutorialTimerId = null
+    }, 700)
+  }
+
   const regionUnlockFX = new RegionUnlockFX()
 
   function currentRegionInfo() {
@@ -179,6 +206,7 @@ async function init() {
       collectedItemIds: Array.from(collectedItemIds),
       unlockedRegions: regionManager.getUnlockedRegions(),
       playerPosition: { x: pos.x, z: pos.z },
+      tutorialSeen,
     }
   }
 
@@ -434,12 +462,15 @@ if (import.meta.hot) {
     if (chunkManager) chunkManager.dispose()
     if (itemSystem) itemSystem.dispose()
     if (autosaveTimer !== null) clearInterval(autosaveTimer)
+    if (tutorialTimerId !== null) clearTimeout(tutorialTimerId)
     if (hud) hud.dispose()
     if (controlsHUD) controlsHUD.dispose()
     if (toast) toast.dispose()
     if (virtualJoystick) virtualJoystick.dispose()
     if (mobileButtons) mobileButtons.dispose()
     if (landingScreen) landingScreen.dispose()
+    if (helpButton) helpButton.dispose()
+    if (tutorialModal) tutorialModal.dispose()
     // touchInputSource.dispose()는 소유권을 UI에 넘기지 않았으므로 위 두 개가 실질 정리
     if (collectFX) collectFX.dispose()
     if (heartFX) heartFX.dispose()
@@ -454,6 +485,7 @@ if (import.meta.hot) {
     chunkManager = null
     itemSystem = null
     autosaveTimer = null
+    tutorialTimerId = null
     hud = null
     controlsHUD = null
     toast = null
@@ -461,6 +493,8 @@ if (import.meta.hot) {
     mobileButtons = null
     touchInputSource = null
     landingScreen = null
+    helpButton = null
+    tutorialModal = null
     collectFX = null
     heartFX = null
     dashTrailFX = null

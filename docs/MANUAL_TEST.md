@@ -29,10 +29,23 @@ Chrome → F12 → Cmd+Shift+M → 디바이스 프리셋 선택
 - [ ] 로딩 스피너 사라진 후 풀스크린 랜딩 표시
 - [ ] 로고 이미지 정상 로드 (로드 실패 시 🐈 이모지 폴백 확인)
 - [ ] 타이틀 "산책냥"이 Jua 폰트로 표시 (네트워크 느릴 때 시스템 sans-serif 폴백 확인)
+- [ ] 힌트 문구가 `🎧 소리를 켜고, 고양이에게 귀 기울여봐요`로 표시
 - [ ] 버튼이 펄스 애니메이션
 - [ ] 가로 모바일(landscape)에서 모든 요소가 화면 안에 들어옴 (overflow 시 스크롤 가능)
 - [ ] START 탭 → 0.45s 페이드아웃 → 게임 시작
 - [ ] START 더블 탭해도 게임이 한 번만 시작됨
+
+### 1-b. 튜토리얼 안내 (신규)
+
+- [ ] **첫 플레이**: START 이후 약 0.7초 뒤 상단 중앙 토스트 `🐈 마을을 산책하면서 아이템을 모으고 새로운 지역을 열어보세요` 표시
+- [ ] 토스트는 약 5.5초 후 자동 fade-out
+- [ ] 좁은 뷰포트(320px)에서도 토스트 내용이 잘리지 않고 자동 줄바꿈됨
+- [ ] 같은 브라우저에서 새로고침하면 토스트 다시 안 뜸 (`tutorialSeen` 세이브 플래그)
+- [ ] `?` 버튼 위치 — 데스크탑: 좌하단 / 모바일: 우상단 (조이스틱과 겹치지 않음)
+- [ ] `?` 탭 → 센터 모달 표시 (같은 안내 문구 + 🐈 이모지 + `알겠어요` 버튼)
+- [ ] 모달 닫기 경로 3가지 모두 작동: 닫기 버튼 · backdrop 클릭 · ESC 키
+- [ ] 모달 여러 번 열고 닫아도 스타일/리스너 누적 없음
+- [ ] 세이브 파일이 없는 시크릿/새 브라우저에서 다시 토스트 노출되는지 확인
 
 ### 2. UI 자동 전환
 
@@ -113,5 +126,7 @@ Chrome → F12 → Cmd+Shift+M → 디바이스 프리셋 선택
 이 체크리스트는 다음 변경이 있을 때마다 재실행:
 - `src/character/Controller.ts`, `src/character/TouchInputSource.ts`
 - `src/ui/VirtualJoystick.ts`, `src/ui/MobileActionButtons.ts`, `src/ui/LandingScreen.ts`
+- `src/ui/Toast.ts`, `src/ui/HelpButton.ts`, `src/ui/TutorialModal.ts`
 - `src/main.ts`의 init 또는 animate 루프
+- `src/game/SaveSystem.ts` (특히 `tutorialSeen` 플래그)
 - 새로운 입력 디바이스 추가 (게임패드 등)
