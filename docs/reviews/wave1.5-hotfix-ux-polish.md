@@ -28,7 +28,7 @@
 - `src/game/SaveSystem.test.ts` — 2개 테스트 추가: `tutorialSeen` round-trip + 필드 없는 legacy 세이브 로드.
 - `src/main.ts`
   - `hint` 전달값 교체.
-  - `TUTORIAL_MESSAGE` / `TUTORIAL_EMOJI` 상수 (토스트·모달 공용).
+  - `TUTORIAL_TOAST_MESSAGE` / `TUTORIAL_MODAL_MESSAGE` / `TUTORIAL_EMOJI` 상수. 후속 패치로 토스트는 짧은 한 줄(`✨` 추가), 모달은 더 서사적 두 줄(`\n` pre-line)로 분리.
   - `tutorialSeen` 추적 변수 + `buildSaveData()`에 필드 포함.
   - `toast = new Toast()` 직후 `TutorialModal` + `HelpButton` 생성. 모바일이면 `top-right`, 아니면 `bottom-left`.
   - `!tutorialSeen`이면 700ms 지연 후 토스트 표시. **save는 토스트가 뜬 뒤 실행** — 700ms 안에 탭이 닫히면 다음 세션에서 다시 노출.
