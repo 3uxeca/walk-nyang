@@ -121,10 +121,13 @@
 |-------|------|------|-----------|------|
 | 1 | Controller 리팩토링 (InputSource 추상화) | ✅ | [`phase1`](reviews/wave1.5-phase1-controller-refactor.md) | `3f957eb` |
 | 2 | VirtualJoystick + MobileActionButtons + TouchInputSource | ✅ | [`phase2`](reviews/wave1.5-phase2-touch-controls.md) | `2f1c2e7` |
-| 3 | 랜딩(시작) 화면 — 로고 + START 버튼, Jua 폰트, 모바일/데스크탑 공통 | ✅ | [`phase3`](reviews/wave1.5-phase3-landing-screen.md) | (commit) |
-| 4 | Vitest 스텁 테스트 + 실기 테스트 가이드 | ✅ | [`phase4`](reviews/wave1.5-phase4-tests-and-manual-guide.md) | (commit) |
+| 3 | 랜딩(시작) 화면 — 로고 + START 버튼, Jua 폰트, 모바일/데스크탑 공통 | ✅ | [`phase3`](reviews/wave1.5-phase3-landing-screen.md) | `823cc90` |
+| 4 | Vitest 스텁 테스트 + 실기 테스트 가이드 | ✅ | [`phase4`](reviews/wave1.5-phase4-tests-and-manual-guide.md) | `834ce44` |
 
-**Wave 1.5 종료** — 모바일 컨트롤 + 랜딩 화면 + 회귀 보호까지 완료.
+**Hotfix**:
+- ✅ DASH 홀드 → 토글 공통 전환 (Shift + 모바일 DASH 버튼) · alt-tab blur OFF · [`hotfix-dash-toggle`](reviews/wave1.5-hotfix-dash-toggle.md) · `c718149`
+
+**Wave 1.5 종료** — 모바일 컨트롤 + 랜딩 화면 + 회귀 보호 + 모바일 피드백 hotfix까지 완료.
 
 ---
 
@@ -259,12 +262,12 @@ Phase 0–5 (완료)
 
 | 지표 | 값 |
 |------|-----|
-| 총 작업 기간 | 2026-04-17 ~ 진행 중 (약 5일 활성) |
+| 총 작업 기간 | 2026-04-17 ~ 진행 중 (약 7일 활성) |
 | OMC 파이프라인 사용 | deep-interview · ralplan · ralph · code-reviewer · ai-slop-cleaner |
 | 사용 에이전트 타입 | 9종 (planner · architect · critic · executor · designer · code-reviewer · qa-tester · scientist · verifier) |
-| 누적 커밋 수 | 18+ (main 기준) |
-| 테스트 커버리지 | 65 tests · 9 files · 100% pass |
-| 빌드 | TypeScript strict · Vite 6 · 분리된 청크 (app 66KB / three 619KB gzip) |
+| 누적 커밋 수 | 31+ (main 기준) |
+| 테스트 커버리지 | 77 tests · 10 files · 100% pass |
+| 빌드 | TypeScript strict · Vite 6 · 분리된 청크 (app 72KB / three 620KB gzip) |
 | 프로덕션 배포 | https://3uxeca.github.io/walk-nyang/ (자동 배포) |
 
 ---
@@ -281,4 +284,4 @@ Phase 0–5 (완료)
 
 ---
 
-*문서 마지막 업데이트: 2026-04-21 · Wave 1.5 Phase 2 완료 시점*
+*문서 마지막 업데이트: 2026-04-24 · Wave 1.5 전체 완료 + DASH 토글 Hotfix 반영*
