@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION, SAVE_KEY } from './SaveSystem'
+import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION, SAVE_KEY, DEFAULT_CAT_COLOR, getCatColor } from './SaveSystem'
 import type { SaveData } from './SaveSystem'
 
 const WORLD_SEED = 12345
@@ -123,5 +123,40 @@ describe('SaveSystem', () => {
     const loaded = sys.load()
     expect(loaded).not.toBeNull()
     expect(loaded?.specialtyCountByRegion).toBeUndefined()
+  })
+
+  // catColor 관련 테스트
+  it('catColor 없는 레거시 세이브 로드 시 reset 안 되고 catColor는 undefined', () => {
+    const legacy = makeValidData()  // catColor 필드 없음
+    sys.save(legacy)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.catColor).toBeUndefined()
+  })
+
+  it('catColor 없는 세이브에서 getCatColor는 DEFAULT_CAT_COLOR 반환', () => {
+    const legacy = makeValidData()
+    sys.save(legacy)
+    const loaded = sys.load()
+    expect(getCatColor(loaded)).toBe(DEFAULT_CAT_COLOR)
+    expect(getCatColor(null)).toBe(DEFAULT_CAT_COLOR)
+  })
+
+  it('catColor 정상 hex 세이브/로드 round-trip', () => {
+    const data: SaveData = { ...makeValidData(), catColor: '#7a4a2a' }
+    sys.save(data)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.catColor).toBe('#7a4a2a')
+    expect(getCatColor(loaded)).toBe('#7a4a2a')
+  })
+
+  it('catColor가 잘못된 타입(number)일 때 reset 안 되고 catColor만 undefined로 처리', () => {
+    // 직접 JSON에 number 타입 catColor 심기
+    const raw = JSON.stringify({ ...makeValidData(), catColor: 42 })
+    storage.setItem(SAVE_KEY, raw)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()           // reset 없이 정상 로드
+    expect(loaded?.catColor).toBeUndefined() // 잘못된 타입 필드는 제거됨
   })
 })

@@ -32,3 +32,4 @@ describe('inputToVelocity', () => {
     expect(v.z).toBeCloseTo(0, 1)
   })
 })
+
