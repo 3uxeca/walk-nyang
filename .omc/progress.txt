@@ -1,9 +1,52 @@
 # Walk3D Ralph Progress Log
 
-## Session Start: 2026-04-17
-## Plan: .omc/plans/walk3d-village-game.md
-## PRD: .omc/prd.json (12 user stories)
+## Session 1: 2026-04-17 (Phase 1 v1, 12 user stories) — 종료, archive
+- PRD 백업: .omc/prd-phase1.json.bak
 
 ---
 
-## Iteration 1 - Phase 1 시작
+## Session 2: 2026-05-05~ (Wave 3 #1 색상 커스터마이즈 UI)
+
+### Plan / PRD
+- spec: .omc/plans/wave3-01-cat-color.md
+- prd: .omc/prd.json (US-W3-01-A ~ US-W3-05, 6 stories)
+- 실험 라벨: E1 (Level 3 / ralph 자율 루프 단가·적발 검증)
+
+### 코드 베이스 사전 조사
+- 메인 fur 머티리얼: src/character/Character.ts:140 `orangeFur` (MeshToonMaterial). body/head/ear에 공유.
+  → setFurColor는 이 인스턴스 .color.set(hex)로 갱신 (재생성 금지 — HMR 누수 회귀 방지).
+- SaveSystem: version=1, itemSchemaVersion=2. mismatch 시 reset()하는 단순 마이그.
+  → catColor는 optional 추가, isValidSaveShape에서 catColor 검사 빼면 자동 호환.
+- 기존 UI 컴포넌트: src/ui/HelpButton.ts, TutorialModal.ts 패턴 재사용.
+- 입력 차단: Controller.ts 입력 게이팅 또는 main.ts에서 modal 상태 플래그.
+
+### 라운드별 학습
+- 라운드 1 — US-W3-01-A, US-W3-01-B 병렬 완료. 독립 파일 영역이라 병렬 위임 효과 +. 테스트 105 passed (기존 99 + Character 2 + SaveSystem 4). tsc 0 에러.
+  - Character.ts: `private furMat: THREE.MeshToonMaterial` 필드 보존, setFurColor가 .color.set(hex) 호출. hex 정규식 `^#[0-9a-fA-F]{6}$` 검증.
+  - SaveSystem.ts: `catColor?: string` + `DEFAULT_CAT_COLOR='#ff8c32'` + `getCatColor(save)` 헬퍼 export. 잘못된 타입은 delete로 무시 (reset 없음).
+- 라운드 2 — US-W3-02 완료. CatColorModal + 16 단위 테스트. 121 passed (105 + 16).
+  - z-index 9600 (TutorialModal 9500 위), 백드롭 클릭은 e.target === backdrop 비교.
+  - jsdom devDependency 추가됨 — reviewer 단계에서 기존 UI 테스트 패턴과 정합성 점검 필요.
+  - CAT_COLOR_PRESETS 상수 export (통합 단계에서 재사용).
+- 라운드 3 — US-W3-03 완료. 125 passed (121 + Controller.inputGate 4). build OK (89.87 kB / 26.63 kB gzip). tsc 0.
+  - 입력 차단: `Controller.setInputEnabled(boolean)` + `inputEnabled` getter. update()에서 게이트 off면 jump 버퍼만 소비 후 0 고정.
+  - 부팅 색 적용: main.ts:163-164 (`saveSystem.load()` 직후, `animate()` 호출 전). 첫 프레임 깜빡임 없음.
+  - HMR cleanup: catColorModal.close(), catColorButton.dispose(), 변수 null 리셋.
+  - z-index: CatColorButton 140 (HelpButton 동일, VirtualJoystick 150보다 낮음). backdrop 9600.
+    → reviewer가 "버튼 영역이 VirtualJoystick과 실제로 겹치지 않는지" 시각적 확인 필요.
+- 라운드 4 — code-reviewer 1차. **FIX_REQUIRED**.
+  - CRITICAL 0
+  - HIGH 3: (1) CatColorButton bottom-left 모바일 VirtualJoystick 충돌 가드 부재, (2) main.ts:194 `{ ...buildSaveData(), catColor: hex }` 이중 적용, (3) GLTF 모드에서 setFurColor silent no-op (사용자 토스트는 뜨는데 색은 안 변함).
+  - MEDIUM 3: (1) swatch 키보드 활성화, (2) handleSelect e.stopPropagation, (7) aria-haspopup.
+  - LOW 9건은 의도적 스킵 후보. 회귀 가드 약함 정도.
+- 라운드 5 — fix 완료. HIGH 3 + MEDIUM 3 모두 반영. 131 passed (125 + 6). tsc 0. build OK.
+  - HIGH-1: CatColorButton 내부에서 `isMobileEnvironment()` 자동 분기, `position` 옵션 deprecated.
+  - HIGH-2: `saveSystem.save(buildSaveData())` 단순화. currentCatColor single source.
+  - HIGH-3: `Character.supportsFurColor()` 게터 + main.ts에서 가드 블록.
+  - MEDIUM-1·2·7: keydown 활성화, stopPropagation, aria-haspopup.
+- 라운드 6 — code-reviewer 2차. **APPROVE**. 회귀 0.
+- 라운드 7 — ai-slop-cleaner 완료. Character.test.ts에서 의미 없는 더블 호출 + 합리화 주석 4줄 제거. 131 passed 그대로, tsc 0.
+- 라운드 8 — 문서 작성 (reviews/wave3-01-cat-color.md, MANUAL_TEST 색상 섹션, cost-log ralph 행, ROADMAP Wave 3 #1 ✅). atomic commit 위임.
+
+### 토큰 예산 노트 (E3)
+- 시작: 2026-05-05 — `/usage` dismissed로 베이스라인 미캡쳐. 종료 시 차이로 측정 예정.

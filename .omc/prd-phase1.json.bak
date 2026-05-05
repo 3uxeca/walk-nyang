@@ -1,0 +1,187 @@
+{
+  "project": "walk3d",
+  "description": "귀여운 3D 마을 탐험 수집 웹 게임 - Three.js + Vite + TypeScript",
+  "version": "1.0.0",
+  "stories": [
+    {
+      "id": "US-001",
+      "title": "Phase 1: 프로젝트 초기화 + 테스트 인프라",
+      "passes": true,
+      "priority": 1,
+      "acceptanceCriteria": [
+        "npm run dev 실행 시 브라우저에서 Three.js 씬(바닥면+조명+안개) 렌더링됨",
+        "package.json에 three, vite, typescript, vitest, simplex-noise 의존성 존재",
+        "npx vitest run 실행 시 샘플 테스트 1개 이상 통과",
+        "main.ts에 import.meta.hot HMR cleanup 코드 존재 (씬/렌더러 dispose)",
+        "TypeScript 컴파일 에러 0건 (npx tsc --noEmit)"
+      ]
+    },
+    {
+      "id": "US-002",
+      "title": "Phase 2: Low-poly chibi 캐릭터 + WASD 이동 + 3인칭 카메라",
+      "passes": true,
+      "priority": 2,
+      "acceptanceCriteria": [
+        "src/character/Character.ts 존재 - Box/Sphere/Cylinder 조합 chibi 캐릭터 생성",
+        "src/character/Controller.ts 존재 - WASD 입력을 속도/방향 벡터로 변환하는 순수 함수 포함",
+        "src/camera/ThirdPersonCamera.ts 존재 - lerp 기반 3인칭 추적 카메라",
+        "WASD 키로 캐릭터 전후좌우 이동 + 이동 방향으로 회전",
+        "걷는 동안 팔다리 스윙 절차적 애니메이션 재생",
+        "Controller.ts 순수 함수 Vitest 테스트 통과",
+        "캐릭터에 MeshToonMaterial + 파스텔 색상 적용"
+      ]
+    },
+    {
+      "id": "US-003",
+      "title": "Phase 3a: 청크 시스템 기초 - ChunkGenerator + ChunkManager",
+      "passes": true,
+      "priority": 3,
+      "acceptanceCriteria": [
+        "src/world/ChunkGenerator.ts 존재 - simplex-noise 기반 순수 결정적 데이터 생성 함수",
+        "src/world/ChunkManager.ts 존재 - 플레이어 위치 기반 3x3 청크 로드/언로드",
+        "src/utils/noise.ts 존재 - worldSeed 기반 Simplex noise 래퍼",
+        "플레이어 이동 시 청크 경계를 넘으면 새 청크 자동 생성됨",
+        "동일 청크 좌표 재방문 시 동일 건물 배치 재현 (결정성)",
+        "집/상점 2종 건물이 청크 내 배치됨",
+        "Vitest ChunkGenerator 결정성 테스트 통과: generate(cx, cz, seed) 동일 입력 → 동일 출력"
+      ]
+    },
+    {
+      "id": "US-004",
+      "title": "Phase 3b: 콘텐츠 다양화 + 격자 도로 시스템",
+      "passes": true,
+      "priority": 4,
+      "acceptanceCriteria": [
+        "src/world/Buildings.ts에 건물 5종 이상 (집/상점/카페/교회/탑) 정의",
+        "src/world/Props.ts에 소품 5종 이상 (나무/꽃/가로등/벤치/우체통) 정의",
+        "src/world/RoadGrid.ts 존재 - 청크당 십자형 도로 생성",
+        "인접 청크 간 도로가 경계에서 자연스럽게 연결됨 (끊김 없음)",
+        "건물/소품이 도로 셀 위에 생성되지 않음 (겹침 없음)",
+        "5종 건물이 화면에서 시각적으로 구분 가능"
+      ]
+    },
+    {
+      "id": "US-005",
+      "title": "Phase 3c: Web Worker + 오브젝트 풀링 + 성능 최적화",
+      "passes": true,
+      "priority": 5,
+      "acceptanceCriteria": [
+        "src/workers/chunkWorker.ts 존재 - ChunkGenerator를 Worker에서 실행하여 순수 데이터 반환",
+        "src/world/ChunkMeshFactory.ts 존재 - Worker 데이터를 받아 Three.js 메시 생성",
+        "src/utils/pool.ts 존재 - 지오메트리 재사용 오브젝트 풀",
+        "ChunkManager가 Worker 생성 실패 시 동기 폴백으로 자동 전환됨",
+        "Vitest: 풀링 acquire/release 테스트 통과",
+        "Vitest: Worker 메시지 직렬화/역직렬화 테스트 통과",
+        "Chrome DevTools에서 청크 Worker 스레드 확인 가능"
+      ]
+    },
+    {
+      "id": "US-006",
+      "title": "Phase 3d-1: ChunkGenerator 아이템 후보 확장 + ItemSystem",
+      "passes": true,
+      "priority": 6,
+      "acceptanceCriteria": [
+        "ChunkGenerator.generate()가 items 배열(id: 'chunkX,chunkZ,localIdx', position, type) 반환",
+        "src/game/ItemSystem.ts 존재 - collectedItemIds Set으로 후보 필터링 후 활성 아이템 메시 생성",
+        "아이템 메시가 파스텔 색상 별/코인/보석 형태로 부유 애니메이션 포함",
+        "플레이어-아이템 거리 < 1.5 유닛 시 자동 수집되고 메시 즉시 제거됨",
+        "수집 이벤트에 복합 키 id ('chunkX,chunkZ,localIdx' 형식) 포함됨",
+        "Vitest 결정성 테스트: 동일 worldSeed+좌표 → 동일 아이템 후보 배열",
+        "Vitest 교차 결정성 불변식: 동일 worldSeed+collectedItemIds → 동일 활성 아이템 집합",
+        "Vitest 수집 경계값: 거리 1.49 수집됨, 1.51 수집 안됨"
+      ]
+    },
+    {
+      "id": "US-007",
+      "title": "Phase 3d-2: ProgressSystem + RegionManager + 프록시 메시",
+      "passes": true,
+      "priority": 7,
+      "acceptanceCriteria": [
+        "src/game/ProgressSystem.ts 존재 - totalCollected/currentLevel/nextLevelThreshold 관리",
+        "수집 이벤트 수신 → 레벨업 판정 → Region 해제 트리거 동작",
+        "src/game/RegionManager.ts 존재 - regionForChunk(cx, cz) 결정적 매핑 함수",
+        "RegionManager가 청크별 { proxyMesh?, fullMesh?, state: locked|unlocking|unlocked } 상태 추적",
+        "Region 해제 시 프록시 메시 → 풀 메시 청크별 순차 교체 동작",
+        "Vitest: ProgressSystem 레벨업 경계값 (19개→미해제, 20개→Region 1 해제)",
+        "Vitest: regionForChunk 결정성 테스트",
+        "Vitest: 프록시→풀 메시 상태 전이 테스트"
+      ]
+    },
+    {
+      "id": "US-008",
+      "title": "Phase 3d-3: ChunkManager 연계 + 세션 루프 게이트",
+      "passes": true,
+      "priority": 8,
+      "acceptanceCriteria": [
+        "ChunkManager 청크 로드 시 RegionManager에 lock 상태를 질의하여 프록시/풀 메시 분기",
+        "잠긴 Region 청크는 단순 박스+안개 오버레이 프록시 메시로 렌더링됨",
+        "ItemSystem에 청크 아이템 후보 데이터 자동 전달됨",
+        "이미 수집된 아이템은 청크 재로드 시 스폰되지 않음",
+        "프록시→풀 메시 교체 시 프레임 스파이크 없음 (연속 60fps 유지)",
+        "[수동 게이트] 저장 없이 세션 내 아이템 수집→레벨업→새 Region 메시 교체 완주 확인"
+      ]
+    },
+    {
+      "id": "US-009",
+      "title": "Phase 3e: SaveSystem + HUD + Region 해제 이펙트",
+      "passes": true,
+      "priority": 9,
+      "acceptanceCriteria": [
+        "src/game/SaveSystem.ts 존재 - localStorage 'walk3d.save.v1' 키에 SaveData 저장/불러오기",
+        "SaveData 스키마에 version/worldSeed/itemSchemaVersion/collectedItemIds/unlockedRegions/playerPosition 포함",
+        "worldSeed 불일치 시 save 리셋 + '월드 시드 변경으로 저장 초기화' 토스트 표시",
+        "itemSchemaVersion 불일치 시 save 리셋 + 토스트 표시",
+        "브라우저 재시작 후 수집 아이템/해제 Region/플레이어 위치 복원됨",
+        "복원 직후 raycast로 지면 스냅 - 캐릭터가 지형 위에 올바르게 위치함",
+        "raycast 실패 시 해당 Region 중심 좌표로 폴백됨",
+        "src/ui/HUD.ts 존재 - '★ N / M · Region: X' 형태 DOM 오버레이 실시간 갱신",
+        "src/ui/RegionUnlockFX.ts - Region 해제 시 파티클/토스트 이펙트 표시",
+        "Vitest: SaveSystem 라운드트립 테스트 (save→load 동등성)",
+        "Vitest: worldSeed/itemSchemaVersion/version 각각 불일치 처리 테스트"
+      ]
+    },
+    {
+      "id": "US-010",
+      "title": "Phase 4: 비주얼 폴리싱",
+      "passes": true,
+      "priority": 10,
+      "acceptanceCriteria": [
+        "모든 3D 오브젝트(캐릭터/건물/소품/지형)에 MeshToonMaterial 적용됨",
+        "파스텔 6색 이내 통일 팔레트 사용",
+        "안개 near/far 값 설정되어 청크 경계가 자연스럽게 페이드됨",
+        "소프트 섀도우 활성화 + 60fps 유지",
+        "Region별 테마 색상이 시각적으로 구분됨 (Meadow/Harbor/Forest 등)",
+        "HUD 스타일 폴리싱 완료"
+      ]
+    },
+    {
+      "id": "US-011",
+      "title": "Phase 5: 코드 리뷰 + QA",
+      "passes": true,
+      "priority": 11,
+      "acceptanceCriteria": [
+        "code-reviewer critical issue 0건",
+        "5분 연속 플레이 후 메모리 증가 < 10MB",
+        "Chrome + Firefox에서 정상 동작",
+        "수집→레벨업→Region 해제 E2E 시나리오 통과",
+        "브라우저 재시작 후 진행도 100% 복원됨",
+        "손상된 SaveData 로드 시 앱 크래시 없이 graceful reset",
+        "Worker 비가용 환경에서 동기 폴백으로 실행 가능"
+      ]
+    },
+    {
+      "id": "US-012",
+      "title": "Phase 6: 평가 + 최종 검증",
+      "passes": true,
+      "priority": 12,
+      "acceptanceCriteria": [
+        "npm run build 성공 + dist/ 생성됨",
+        "npx vitest run 전체 테스트 스위트 통과",
+        "평균 FPS >= 55 (데스크톱 Chrome DevTools 측정)",
+        "초기 로드 시간 < 3초",
+        "번들 크기 < 500KB gzipped",
+        "WASD 이동 / 아이템 수집 / Region 해제 / 저장 복원 전체 동작 확인"
+      ]
+    }
+  ]
+}
