@@ -18,6 +18,9 @@ export class Character {
   private walkTime = 0
   private landTimer = 0
 
+  // Main fur material (procedural mode) — preserved for setFurColor
+  private furMat: THREE.MeshToonMaterial | null = null
+
   // GLTF animation (only used when GLTF model is available)
   private mixer: THREE.AnimationMixer | null = null
   private idleAction: THREE.AnimationAction | null = null
@@ -138,6 +141,7 @@ export class Character {
   private buildProcedural() {
     const whiteFur  = new THREE.MeshToonMaterial({ color: 0xfff5e8 })
     const orangeFur = new THREE.MeshToonMaterial({ color: 0xff8c32 })
+    this.furMat = orangeFur
     const darkFur   = new THREE.MeshToonMaterial({ color: 0x272727 })
     const bellyMat  = new THREE.MeshToonMaterial({ color: 0xfff0e0 })
     const earInner  = new THREE.MeshToonMaterial({ color: 0xffb3c6 })
@@ -310,6 +314,24 @@ export class Character {
     tip.position.set(0.52, 1.10, 0.04)
     this.tail.add(tip)
     this.visual.add(this.tail)
+  }
+
+  // ── Color API ────────────────────────────────────────────────
+
+  private static readonly HEX_RE = /^#[0-9a-fA-F]{6}$/
+
+  /**
+   * furMat이 존재하는 경우(procedural 모드)에만 true를 반환합니다.
+   * GLTF 모드에서는 false — 향후 GLTF body mesh 추출로 지원 예정 (TODO: Wave 3 #3 의상).
+   */
+  public supportsFurColor(): boolean {
+    return this.furMat !== null
+  }
+
+  public setFurColor(hex: string): void {
+    if (!Character.HEX_RE.test(hex)) return
+    if (!this.furMat) return
+    this.furMat.color.set(hex)
   }
 
   // ── Shared update ────────────────────────────────────────────

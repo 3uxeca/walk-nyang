@@ -2,6 +2,9 @@ export const SAVE_KEY = 'walk3d.save.v1'
 export const CURRENT_VERSION = 1
 export const CURRENT_ITEM_SCHEMA_VERSION = 2
 
+/** 고양이 fur 컬러 기본값 (오렌지). */
+export const DEFAULT_CAT_COLOR = '#ff8c32'
+
 export interface SaveData {
   version: number
   worldSeed: number
@@ -25,6 +28,11 @@ export interface SaveData {
    * 언락 조건 판정의 권위 있는 출처. 필드 부재 시 빈 객체로 폴백.
    */
   specialtyCountByRegion?: Record<number, number>
+  /**
+   * 고양이 메인 fur 컬러 (hex 문자열, 예: '#ff8c32').
+   * 필드가 없거나 타입이 잘못된 경우 호출자가 DEFAULT_CAT_COLOR로 폴백.
+   */
+  catColor?: string
 }
 
 function isValidSaveShape(v: unknown): v is SaveData {
@@ -73,10 +81,24 @@ export class SaveSystem {
       return null
     }
 
+    // catColor가 존재하지만 string이 아닌 경우 필드를 제거해 호환성 유지 (reset 안 함)
+    if ('catColor' in parsed && typeof parsed.catColor !== 'string') {
+      const sanitized: SaveData = { ...parsed }
+      delete sanitized.catColor
+      return sanitized
+    }
+
     return parsed
   }
 
   reset(): void {
     this.storage.removeItem(SAVE_KEY)
   }
+}
+
+/**
+ * 세이브 데이터에서 catColor를 읽어 반환하거나, 없으면 DEFAULT_CAT_COLOR를 반환.
+ */
+export function getCatColor(save: SaveData | null): string {
+  return save?.catColor ?? DEFAULT_CAT_COLOR
 }

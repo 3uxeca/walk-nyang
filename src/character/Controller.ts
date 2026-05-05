@@ -118,10 +118,30 @@ export class Controller {
     forward: false, backward: false, left: false, right: false, jump: false, dash: false,
   }
   private sources: InputSource[] = []
+  private _inputEnabled = true
 
   constructor() {
     // 기본 소스는 키보드. 터치 소스는 이후 Phase 2-3에서 addSource()로 추가.
     this.sources.push(new KeyboardInputSource())
+  }
+
+  /**
+   * 입력 게이트. false로 설정하면 update()에서 모든 held/jump/dash 입력이
+   * 0(false)으로 강제되어 캐릭터에 전달되지 않는다.
+   * 모달 열림/닫힘 시 true/false를 토글해 사용.
+   */
+  setInputEnabled(enabled: boolean): void {
+    this._inputEnabled = enabled
+    if (!enabled) {
+      // 즉시 입력 초기화 — 모달 열릴 때 이미 눌린 키가 계속 전달되지 않도록
+      this.input = {
+        forward: false, backward: false, left: false, right: false, jump: false, dash: false,
+      }
+    }
+  }
+
+  get inputEnabled(): boolean {
+    return this._inputEnabled
   }
 
   /** 추가 입력 소스 등록 (모바일 조이스틱/버튼 등). */
@@ -151,6 +171,21 @@ export class Controller {
   update(dt: number): void {
     for (const s of this.sources) {
       s.update?.(dt)
+    }
+
+    // 입력 게이트가 꺼진 경우 소스 state를 소비만 하고(버퍼 누적 방지) 0으로 고정
+    if (!this._inputEnabled) {
+      // jump 엣지를 소비해 버퍼가 쌓이지 않도록
+      for (const s of this.sources) {
+        s.consumeJump?.()
+      }
+      this.input.forward  = false
+      this.input.backward = false
+      this.input.left     = false
+      this.input.right    = false
+      this.input.dash     = false
+      this.input.jump     = false
+      return
     }
 
     this.input.forward  = this.sources.some(s => s.state.forward)

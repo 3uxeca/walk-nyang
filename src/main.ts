@@ -6,7 +6,7 @@ import { ChunkManager, WORLD_SEED } from './world/ChunkManager'
 import { ItemSystem } from './game/ItemSystem'
 import { ProgressSystem } from './game/ProgressSystem'
 import { RegionManager, regionForChunk, getRegionInfo, REGION_NAMES } from './game/RegionManager'
-import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION } from './game/SaveSystem'
+import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION, getCatColor, DEFAULT_CAT_COLOR } from './game/SaveSystem'
 import { ITEM_WEIGHT, SPECIALTY_REGION_BY_TYPE } from './game/ItemTypes'
 import type { ItemType } from './game/ItemTypes'
 import { HUD } from './ui/HUD'
@@ -19,6 +19,8 @@ import { TouchInputSource, isMobileEnvironment } from './character/TouchInputSou
 import { LandingScreen } from './ui/LandingScreen'
 import { HelpButton } from './ui/HelpButton'
 import { TutorialModal } from './ui/TutorialModal'
+import { CatColorModal } from './ui/CatColorModal'
+import { CatColorButton } from './ui/CatColorButton'
 import { CollectFX } from './game/CollectFX'
 import { HeartFX } from './game/HeartFX'
 import { DashTrailFX } from './game/DashTrailFX'
@@ -50,6 +52,9 @@ let touchInputSource: TouchInputSource | null = null
 let landingScreen: LandingScreen | null = null
 let helpButton: HelpButton | null = null
 let tutorialModal: TutorialModal | null = null
+let catColorModal: CatColorModal | null = null
+let catColorButton: CatColorButton | null = null
+let currentCatColor: string = DEFAULT_CAT_COLOR
 let collectFX: CollectFX | null = null
 let heartFX: HeartFX | null = null
 let dashTrailFX: DashTrailFX | null = null
@@ -154,6 +159,10 @@ async function init() {
     }
   }
 
+  // 부팅 시점 fur 색상 복원 — animation loop 시작 전 첫 프레임 깜빡임 없이 적용
+  currentCatColor = getCatColor(saveData)
+  character.setFurColor(currentCatColor)
+
   const isMobile = isMobileEnvironment()
 
   hud = new HUD()
@@ -170,6 +179,28 @@ async function init() {
     position: isMobile ? 'top-right' : 'bottom-left',
     onClick: () => tutorialModal?.open(),
   })
+
+  if (character.supportsFurColor()) {
+    catColorModal = new CatColorModal()
+    catColorButton = new CatColorButton({
+      onClick: () => {
+        if (catColorModal!.isOpen()) return
+        controller?.setInputEnabled(false)
+        catColorModal!.open({
+          initialHex: currentCatColor,
+          onSelect: (hex, name) => {
+            currentCatColor = hex
+            character.setFurColor(hex)
+            saveSystem.save(buildSaveData())
+            toast?.show(`${name} 컬러로 변경`, '🎨', `cat-color-${hex}`, 0, 2000)
+          },
+          onClose: () => {
+            controller?.setInputEnabled(true)
+          },
+        })
+      },
+    })
+  }
   if (!tutorialSeen) {
     // 랜딩 페이드아웃 후 첫 프레임이 보이면 자연스럽게 토스트 띄움.
     // save는 실제로 토스트가 뜬 뒤 기록 — 700ms 안에 탭 닫히면 다음 세션에서 한 번 더 볼 수 있게.
@@ -220,6 +251,7 @@ async function init() {
       tutorialSeen,
       totalCollected: progressSystem.getTotalCollected(),
       specialtyCountByRegion: progressSystem.getSpecialtyCountsSnapshot(),
+      catColor: currentCatColor,
     }
   }
 
@@ -499,6 +531,8 @@ if (import.meta.hot) {
     if (landingScreen) landingScreen.dispose()
     if (helpButton) helpButton.dispose()
     if (tutorialModal) tutorialModal.dispose()
+    if (catColorModal) catColorModal.close()
+    if (catColorButton) catColorButton.dispose()
     // touchInputSource.dispose()는 소유권을 UI에 넘기지 않았으므로 위 두 개가 실질 정리
     if (collectFX) collectFX.dispose()
     if (heartFX) heartFX.dispose()
@@ -523,6 +557,9 @@ if (import.meta.hot) {
     landingScreen = null
     helpButton = null
     tutorialModal = null
+    catColorModal = null
+    catColorButton = null
+    currentCatColor = DEFAULT_CAT_COLOR
     collectFX = null
     heartFX = null
     dashTrailFX = null
