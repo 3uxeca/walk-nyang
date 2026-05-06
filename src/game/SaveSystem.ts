@@ -2,8 +2,8 @@ export const SAVE_KEY = 'walk3d.save.v1'
 export const CURRENT_VERSION = 1
 export const CURRENT_ITEM_SCHEMA_VERSION = 2
 
-/** 고양이 fur 컬러 기본값 (오렌지). */
-export const DEFAULT_CAT_COLOR = '#ff8c32'
+/** 고양이 fur 컬러 기본값 (블랙) — CatColorModal 프리셋의 '블랙'과 동일 hex. */
+export const DEFAULT_CAT_COLOR = '#272727'
 
 /** 닉네임 미설정·빈 문자열 시 사용하는 폴백 이름. */
 export const DEFAULT_NICKNAME = '산책냥'
