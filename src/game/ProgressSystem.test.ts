@@ -90,6 +90,28 @@ describe('ProgressSystem', () => {
     ps.collect('d', 1);
     expect(ps.getTotalCollected()).toBe(11);
   });
+
+  it('gateLevelUp=true면 totalCollected는 늘지만 level/threshold 변화 없음', () => {
+    const ps = new ProgressSystem();
+    ps.setTotalCollected(19);
+    expect(ps.getCurrentLevel()).toBe(0);
+    expect(ps.getNextLevelThreshold()).toBe(20);
+    ps.collect('x', 1, true); // 게이트 인가
+    expect(ps.getTotalCollected()).toBe(20);
+    expect(ps.getCurrentLevel()).toBe(0);
+    expect(ps.getNextLevelThreshold()).toBe(20);
+  });
+
+  it('gateLevelUp=true 다음 false 호출은 정상 레벨업', () => {
+    const ps = new ProgressSystem();
+    ps.setTotalCollected(19);
+    ps.collect('cap', 1, true);
+    expect(ps.getCurrentLevel()).toBe(0);
+    ps.collect('release', 1, false);
+    expect(ps.getTotalCollected()).toBe(21);
+    expect(ps.getCurrentLevel()).toBe(1);
+    expect(ps.getNextLevelThreshold()).toBe(40);
+  });
 });
 
 describe('ProgressSystem 특산품 기반 언락', () => {

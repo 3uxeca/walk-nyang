@@ -292,8 +292,19 @@ async function init() {
   }
 
   itemSystem = new ItemSystem(scene, collectedItemIds, (id, type) => {
-    // collect가 true면 실제 신규 수집 — dedup에 걸렸으면 specialty 카운트도 올리지 않음.
-    const isNew = progressSystem.collect(id, ITEM_WEIGHT[type])
+    // 다음 마을 해제 게이트: 현재 지역의 특산품이 미완이면 레벨 게이지를 threshold에 캡.
+    // 일반 아이템 weight를 남은 칸(room)에 clamp하고 ProgressSystem 레벨업 루프도 건너뜀.
+    const riPre = currentRegionInfo()
+    const specialtyCountBefore = progressSystem.getSpecialtyCount(riPre.id)
+    const hasNextRegion = (riPre.id + 1) in REGION_NAMES
+    const isGated =
+      hasNextRegion && riPre.specialty != null && specialtyCountBefore < SPECIALTY_UNLOCK_THRESHOLD
+    let weight = ITEM_WEIGHT[type]
+    if (isGated && weight > 0) {
+      const room = Math.max(0, progressSystem.getNextLevelThreshold() - progressSystem.getTotalCollected())
+      weight = Math.min(weight, room)
+    }
+    const isNew = progressSystem.collect(id, weight, isGated)
     if (!isNew) return
     const specialtyRegion = SPECIALTY_REGION_BY_TYPE[type]
     if (specialtyRegion !== undefined) {
@@ -321,6 +332,23 @@ async function init() {
       progressSystem.getSpecialtyCount(ri.id),
       SPECIALTY_UNLOCK_THRESHOLD,
     )
+    // 캡 도달 안내: 일반 아이템으로 threshold에 닿았는데 특산품 미완이면 토스트.
+    // (특산품은 ITEM_WEIGHT=0이라 ITEM_WEIGHT[type]>0 가드로 자연 스킵)
+    if (
+      isGated &&
+      ITEM_WEIGHT[type] > 0 &&
+      ri.specialty &&
+      progressSystem.getTotalCollected() >= progressSystem.getNextLevelThreshold()
+    ) {
+      const remaining = SPECIALTY_UNLOCK_THRESHOLD - specialtyCountBefore
+      toast?.show(
+        `특산품 ${ri.specialty.emoji}을 ${remaining}개 더 모아서 다음 마을로 가자!`,
+        undefined,
+        `gate-${ri.id}`,
+        2500,
+        2200,
+      )
+    }
     saveSystem.save(buildSaveData())
   })
   chunkManager.setItemSystem(itemSystem)

@@ -25,17 +25,20 @@ export class ProgressSystem {
   /**
    * 주어진 id가 새 수집이면 `true`, dedup으로 무시되면 `false`를 반환.
    * 호출자가 반환값으로 후속 부작용(예: `recordSpecialty`)을 게이팅할 수 있도록.
+   *
+   * `gateLevelUp=true`면 이번 호출에서 레벨업 while 루프를 건너뜀.
+   * 호출자(특산품 미완 + 다음 지역 대기)가 게이지를 threshold에 캡핑할 때 사용.
    */
-  collect(id: string, weight: number = 1): boolean {
+  collect(id: string, weight: number = 1, gateLevelUp: boolean = false): boolean {
     if (this.collectedIds.has(id)) return false;
     this.collectedIds.add(id);
     this.totalCollected += weight;
 
-    // HUD 진행바가 쓰는 `currentLevel`/`nextLevelThreshold`만 갱신.
-    // (언락 트리거는 `recordSpecialty` → `onRegionUnlock`가 단독으로 담당)
-    while (this.totalCollected >= this.nextLevelThreshold) {
-      this.currentLevel++;
-      this.nextLevelThreshold = (this.currentLevel + 1) * ITEMS_PER_LEVEL;
+    if (!gateLevelUp) {
+      while (this.totalCollected >= this.nextLevelThreshold) {
+        this.currentLevel++;
+        this.nextLevelThreshold = (this.currentLevel + 1) * ITEMS_PER_LEVEL;
+      }
     }
     return true;
   }
