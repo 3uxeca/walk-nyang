@@ -5,6 +5,9 @@ export const CURRENT_ITEM_SCHEMA_VERSION = 2
 /** 고양이 fur 컬러 기본값 (오렌지). */
 export const DEFAULT_CAT_COLOR = '#ff8c32'
 
+/** 닉네임 미설정·빈 문자열 시 사용하는 폴백 이름. */
+export const DEFAULT_NICKNAME = '산책냥'
+
 export interface SaveData {
   version: number
   worldSeed: number
@@ -33,6 +36,11 @@ export interface SaveData {
    * 필드가 없거나 타입이 잘못된 경우 호출자가 DEFAULT_CAT_COLOR로 폴백.
    */
   catColor?: string
+  /**
+   * 고양이 닉네임. 선택 필드 — 없거나 빈 문자열이면 DEFAULT_NICKNAME으로 폴백.
+   * isValidSaveShape에서 검사하지 않아 예전 세이브와 호환.
+   */
+  nickname?: string
 }
 
 function isValidSaveShape(v: unknown): v is SaveData {
@@ -81,10 +89,15 @@ export class SaveSystem {
       return null
     }
 
-    // catColor가 존재하지만 string이 아닌 경우 필드를 제거해 호환성 유지 (reset 안 함)
-    if ('catColor' in parsed && typeof parsed.catColor !== 'string') {
+    // 선택 필드가 존재하지만 타입이 잘못된 경우 필드를 제거해 호환성 유지 (reset 안 함)
+    const needsSanitize =
+      ('catColor' in parsed && typeof parsed.catColor !== 'string') ||
+      ('nickname' in parsed && typeof parsed.nickname !== 'string')
+
+    if (needsSanitize) {
       const sanitized: SaveData = { ...parsed }
-      delete sanitized.catColor
+      if (typeof sanitized.catColor !== 'string') delete sanitized.catColor
+      if (typeof sanitized.nickname !== 'string') delete sanitized.nickname
       return sanitized
     }
 

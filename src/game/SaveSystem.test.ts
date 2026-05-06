@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION, SAVE_KEY, DEFAULT_CAT_COLOR, getCatColor } from './SaveSystem'
+import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION, SAVE_KEY, DEFAULT_CAT_COLOR, DEFAULT_NICKNAME, getCatColor } from './SaveSystem'
 import type { SaveData } from './SaveSystem'
 
 const WORLD_SEED = 12345
@@ -158,5 +158,50 @@ describe('SaveSystem', () => {
     const loaded = sys.load()
     expect(loaded).not.toBeNull()           // reset 없이 정상 로드
     expect(loaded?.catColor).toBeUndefined() // 잘못된 타입 필드는 제거됨
+  })
+
+  // nickname 관련 테스트
+  it('DEFAULT_NICKNAME 상수가 올바른 값', () => {
+    expect(DEFAULT_NICKNAME).toBe('산책냥')
+  })
+
+  it('nickname 라운드트립 (저장→로드)', () => {
+    const data: SaveData = { ...makeValidData(), nickname: '나의냥이' }
+    sys.save(data)
+    const loaded = sys.load()
+    expect(loaded?.nickname).toBe('나의냥이')
+  })
+
+  it('nickname 필드 누락 시 로드 정상 (backward compat)', () => {
+    const legacy = makeValidData()  // nickname 없음
+    sys.save(legacy)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.nickname).toBeUndefined()
+  })
+
+  it('nickname이 비정상 타입(number)이면 reset 없이 nickname만 undefined로 처리', () => {
+    const raw = JSON.stringify({ ...makeValidData(), nickname: 42 })
+    storage.setItem(SAVE_KEY, raw)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.nickname).toBeUndefined()
+  })
+
+  it('nickname이 비정상 타입(boolean)이면 reset 없이 nickname만 undefined로 처리', () => {
+    const raw = JSON.stringify({ ...makeValidData(), nickname: true })
+    storage.setItem(SAVE_KEY, raw)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.nickname).toBeUndefined()
+  })
+
+  it('nickname과 catColor 둘 다 비정상 타입이면 둘 다 undefined로 처리', () => {
+    const raw = JSON.stringify({ ...makeValidData(), catColor: 42, nickname: 99 })
+    storage.setItem(SAVE_KEY, raw)
+    const loaded = sys.load()
+    expect(loaded).not.toBeNull()
+    expect(loaded?.catColor).toBeUndefined()
+    expect(loaded?.nickname).toBeUndefined()
   })
 })

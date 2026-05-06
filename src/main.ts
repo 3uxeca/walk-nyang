@@ -6,8 +6,8 @@ import { ChunkManager, WORLD_SEED } from './world/ChunkManager'
 import { ItemSystem } from './game/ItemSystem'
 import { ProgressSystem } from './game/ProgressSystem'
 import { RegionManager, regionForChunk, getRegionInfo, REGION_NAMES } from './game/RegionManager'
-import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION, getCatColor, DEFAULT_CAT_COLOR } from './game/SaveSystem'
-import { ITEM_WEIGHT, SPECIALTY_REGION_BY_TYPE } from './game/ItemTypes'
+import { SaveSystem, CURRENT_VERSION, CURRENT_ITEM_SCHEMA_VERSION, getCatColor, DEFAULT_CAT_COLOR, DEFAULT_NICKNAME } from './game/SaveSystem'
+import { ITEM_WEIGHT, SPECIALTY_REGION_BY_TYPE, SPECIALTY_UNLOCK_THRESHOLD } from './game/ItemTypes'
 import type { ItemType } from './game/ItemTypes'
 import { HUD } from './ui/HUD'
 import { RegionUnlockFX } from './ui/RegionUnlockFX'
@@ -21,6 +21,7 @@ import { HelpButton } from './ui/HelpButton'
 import { TutorialModal } from './ui/TutorialModal'
 import { CatColorModal } from './ui/CatColorModal'
 import { CatColorButton } from './ui/CatColorButton'
+import { CatNameModal } from './ui/CatNameModal'
 import { CollectFX } from './game/CollectFX'
 import { HeartFX } from './game/HeartFX'
 import { DashTrailFX } from './game/DashTrailFX'
@@ -54,7 +55,9 @@ let helpButton: HelpButton | null = null
 let tutorialModal: TutorialModal | null = null
 let catColorModal: CatColorModal | null = null
 let catColorButton: CatColorButton | null = null
+let catNameModal: CatNameModal | null = null
 let currentCatColor: string = DEFAULT_CAT_COLOR
+let currentNickname: string = DEFAULT_NICKNAME
 let collectFX: CollectFX | null = null
 let heartFX: HeartFX | null = null
 let dashTrailFX: DashTrailFX | null = null
@@ -163,9 +166,38 @@ async function init() {
   currentCatColor = getCatColor(saveData)
   character.setFurColor(currentCatColor)
 
+  // 닉네임 복원 — trim 후 1~12자인 경우에만 사용, 그 외엔 DEFAULT_NICKNAME 폴백
+  const savedNickname = saveData?.nickname
+  if (typeof savedNickname === 'string' && savedNickname.trim().length >= 1 && savedNickname.trim().length <= 12) {
+    currentNickname = savedNickname.trim()
+  }
+
   const isMobile = isMobileEnvironment()
 
-  hud = new HUD()
+  catNameModal = new CatNameModal()
+  hud = new HUD({
+    onEditNickname: () => {
+      if (catNameModal!.isOpen()) return
+      controller?.setInputEnabled(false)
+      catNameModal!.open(currentNickname, (newName) => {
+        currentNickname = newName
+        const ri = currentRegionInfo()
+        hud!.update(
+          progressSystem.getTotalCollected(),
+          progressSystem.getNextLevelThreshold(),
+          ri.name,
+          ri.emoji,
+          ri.specialty?.emoji,
+          currentNickname,
+          progressSystem.getSpecialtyCount(ri.id),
+          SPECIALTY_UNLOCK_THRESHOLD,
+        )
+        saveSystem.save(buildSaveData())
+      }, () => {
+        controller?.setInputEnabled(true)
+      })
+    },
+  })
   // 데스크탑에선 키가이드 HUD 표시. 모바일에선 가상 조이스틱/버튼이 대신하므로 생성 안 함.
   if (!isMobile) {
     controlsHUD = new ControlsHUD()
@@ -229,7 +261,10 @@ async function init() {
     progressSystem.getNextLevelThreshold(),
     initialRegion.name,
     initialRegion.emoji,
-    initialRegion.specialty?.emoji
+    initialRegion.specialty?.emoji,
+    currentNickname,
+    progressSystem.getSpecialtyCount(initialRegion.id),
+    SPECIALTY_UNLOCK_THRESHOLD,
   )
 
   collectFX = new CollectFX(scene)
@@ -252,6 +287,7 @@ async function init() {
       totalCollected: progressSystem.getTotalCollected(),
       specialtyCountByRegion: progressSystem.getSpecialtyCountsSnapshot(),
       catColor: currentCatColor,
+      nickname: currentNickname,
     }
   }
 
@@ -280,7 +316,10 @@ async function init() {
       progressSystem.getNextLevelThreshold(),
       ri.name,
       ri.emoji,
-      ri.specialty?.emoji
+      ri.specialty?.emoji,
+      currentNickname,
+      progressSystem.getSpecialtyCount(ri.id),
+      SPECIALTY_UNLOCK_THRESHOLD,
     )
     saveSystem.save(buildSaveData())
   })
@@ -463,7 +502,10 @@ async function init() {
         progressSystem.getNextLevelThreshold(),
         info.name,
         info.emoji,
-        info.specialty?.emoji
+        info.specialty?.emoji,
+        currentNickname,
+        progressSystem.getSpecialtyCount(curRegionId),
+        SPECIALTY_UNLOCK_THRESHOLD,
       )
     }
 
@@ -533,6 +575,7 @@ if (import.meta.hot) {
     if (tutorialModal) tutorialModal.dispose()
     if (catColorModal) catColorModal.close()
     if (catColorButton) catColorButton.dispose()
+    if (catNameModal) catNameModal.dispose()
     // touchInputSource.dispose()는 소유권을 UI에 넘기지 않았으므로 위 두 개가 실질 정리
     if (collectFX) collectFX.dispose()
     if (heartFX) heartFX.dispose()
@@ -559,7 +602,9 @@ if (import.meta.hot) {
     tutorialModal = null
     catColorModal = null
     catColorButton = null
+    catNameModal = null
     currentCatColor = DEFAULT_CAT_COLOR
+    currentNickname = DEFAULT_NICKNAME
     collectFX = null
     heartFX = null
     dashTrailFX = null
