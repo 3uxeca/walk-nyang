@@ -11,12 +11,13 @@ export type ItemType =
 export const BASE_ITEM_TYPES: ItemType[] = ['star', 'coin', 'gem']
 
 /**
- * 수집 시 ProgressSystem에 얼마나 가산될지.
- * 기본 아이템은 1, 특산품은 3 — "조금 덜 스폰되지만 더 큰 보상" 규칙.
+ * 수집 시 ProgressSystem.totalCollected(레벨 게이지)에 얼마나 가산될지.
+ * 특산품은 별개 카운터(specialtyCountByRegion)로 추적·게이팅하므로 여기선 0.
+ * 일반 아이템 게이지와 특산품 진행도를 시각적·기능적으로 분리.
  */
 export const ITEM_WEIGHT: Record<ItemType, number> = {
   star: 1, coin: 1, gem: 1,
-  flower: 3, fish: 3, clover: 3, droplet: 3,
+  flower: 0, fish: 0, clover: 0, droplet: 0,
 }
 
 /**
