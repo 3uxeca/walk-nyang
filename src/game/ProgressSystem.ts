@@ -100,6 +100,17 @@ export class ProgressSystem {
     return out;
   }
 
+  /**
+   * 누적값(`totalCollected`)에서 자연 레벨을 다시 계산해 `currentLevel`/`nextLevelThreshold`를
+   * 동기화한다. 캡(`gateLevelUp=true`)으로 일시 동결됐던 레벨을 풀어줄 때 호출.
+   * 호출자: 게이트 해제(특산품 3) 직후, 또는 새 지역 진입 시.
+   */
+  recomputeLevel(): void {
+    const { level, threshold } = calcLevel(this.totalCollected);
+    this.currentLevel = level;
+    this.nextLevelThreshold = threshold;
+  }
+
   getTotalCollected(): number {
     return this.totalCollected;
   }

@@ -309,6 +309,8 @@ async function init() {
     const specialtyRegion = SPECIALTY_REGION_BY_TYPE[type]
     if (specialtyRegion !== undefined) {
       progressSystem.recordSpecialty(specialtyRegion)
+      // 게이트가 해제됐을 수 있음 — 누적값 기준 자연 레벨로 동기화해 HUD threshold 보정.
+      progressSystem.recomputeLevel()
     }
     playMeow()
     character.playGesturePositive()
@@ -537,6 +539,8 @@ async function init() {
     const curRegionId = regionForChunk(Math.floor(charPos.x / CHUNK_SIZE), Math.floor(charPos.z / CHUNK_SIZE))
     if (curRegionId !== lastRegionId) {
       lastRegionId = curRegionId
+      // 새 지역 진입 시 게이트로 동결됐던 레벨을 자연 레벨로 동기화 — threshold가 따라옴.
+      progressSystem.recomputeLevel()
       const info = getRegionInfo(curRegionId)
       hud!.update(
         progressSystem.getTotalCollected(),

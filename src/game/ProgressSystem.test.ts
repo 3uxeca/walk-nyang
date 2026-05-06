@@ -112,6 +112,29 @@ describe('ProgressSystem', () => {
     expect(ps.getCurrentLevel()).toBe(1);
     expect(ps.getNextLevelThreshold()).toBe(40);
   });
+
+  it('recomputeLevel: 게이트로 동결된 level/threshold를 누적값 기준으로 동기화', () => {
+    const ps = new ProgressSystem();
+    ps.setTotalCollected(19);
+    ps.collect('a', 1, true); // total=20, level/threshold 동결 (0/20)
+    expect(ps.getCurrentLevel()).toBe(0);
+    expect(ps.getNextLevelThreshold()).toBe(20);
+    ps.recomputeLevel();
+    expect(ps.getCurrentLevel()).toBe(1);
+    expect(ps.getNextLevelThreshold()).toBe(40);
+    expect(ps.getTotalCollected()).toBe(20);
+  });
+
+  it('recomputeLevel: 누적값이 변하지 않으면 호출이 idempotent', () => {
+    const ps = new ProgressSystem();
+    for (let i = 0; i < 25; i++) ps.collect(`x-${i}`);
+    const lvl = ps.getCurrentLevel();
+    const thr = ps.getNextLevelThreshold();
+    ps.recomputeLevel();
+    ps.recomputeLevel();
+    expect(ps.getCurrentLevel()).toBe(lvl);
+    expect(ps.getNextLevelThreshold()).toBe(thr);
+  });
 });
 
 describe('ProgressSystem 특산품 기반 언락', () => {
