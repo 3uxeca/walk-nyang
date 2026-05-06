@@ -449,7 +449,18 @@ async function init() {
       if (prevState !== 'locked') {
         charPos.x = prevX
         charPos.z = prevZ
-        toast!.show('아직 잠겨있는 지역이에요', '🔒', 'locked-region', 2000)
+        // 잠금 해제 prerequisite: 직전 region(lockedId - 1)의 특산품 SPECIALTY_UNLOCK_THRESHOLD개.
+        const lockedRegionId = regionForChunk(targetCX, targetCZ)
+        const prereqRegionId = lockedRegionId - 1
+        const prereqInfo = REGION_NAMES[prereqRegionId]
+        const remaining = prereqInfo
+          ? Math.max(0, SPECIALTY_UNLOCK_THRESHOLD - progressSystem.getSpecialtyCount(prereqRegionId))
+          : 0
+        const message =
+          prereqInfo?.specialty && remaining > 0
+            ? `${prereqInfo.specialty.emoji}을 ${remaining}개 더 모으면 잠금 해제!`
+            : '아이템을 더 모아서 잠금을 풀어보자!'
+        toast!.show(message, '🔒', `locked-region-${lockedRegionId}`, 2000, 2200)
       }
     }
 
