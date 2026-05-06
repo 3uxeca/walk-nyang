@@ -332,7 +332,7 @@ async function init() {
       progressSystem.getSpecialtyCount(ri.id),
       SPECIALTY_UNLOCK_THRESHOLD,
     )
-    // 캡 도달 안내: 일반 아이템으로 threshold에 닿았는데 특산품 미완이면 토스트.
+    // 캡 도달 안내: 일반 아이템으로 threshold에 닿았는데 특산품 미완이면 토스트 + 잔여 일반 아이템 정리.
     // (특산품은 ITEM_WEIGHT=0이라 ITEM_WEIGHT[type]>0 가드로 자연 스킵)
     if (
       isGated &&
@@ -348,6 +348,8 @@ async function init() {
         2500,
         2200,
       )
+      // 게이지 캡 상태에선 일반 아이템이 더 모아도 진행 X — 시각 노이즈 제거.
+      itemSystem!.removeBaseItems()
     }
     saveSystem.save(buildSaveData())
   })

@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import type { ItemCandidateData } from '../world/ChunkGenerator'
-import type { ItemType } from './ItemTypes'
+import { BASE_ITEM_TYPES, type ItemType } from './ItemTypes'
 
 export const COLLECT_RADIUS = 1.5
 
@@ -189,6 +189,20 @@ export class ItemSystem {
         this.activeItems.delete(id)
       }
     }
+  }
+
+  /** 씬에 남아있는 일반 아이템(BASE_ITEM_TYPES)만 제거. 특산품은 보존. */
+  removeBaseItems(): number {
+    let count = 0
+    for (const [id, item] of this.activeItems) {
+      if (BASE_ITEM_TYPES.includes(item.type)) {
+        this.scene.remove(item.mesh)
+        disposeItemMesh(item.mesh)
+        this.activeItems.delete(id)
+        count++
+      }
+    }
+    return count
   }
 
   update(delta: number, playerX: number, playerZ: number) {
