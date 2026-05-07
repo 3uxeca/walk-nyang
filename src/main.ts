@@ -309,8 +309,6 @@ async function init() {
     const specialtyRegion = SPECIALTY_REGION_BY_TYPE[type]
     if (specialtyRegion !== undefined) {
       progressSystem.recordSpecialty(specialtyRegion)
-      // 게이트가 해제됐을 수 있음 — 누적값 기준 자연 레벨로 동기화해 HUD threshold 보정.
-      progressSystem.recomputeLevel()
     }
     playMeow()
     character.playGesturePositive()
@@ -363,6 +361,8 @@ async function init() {
     regionManager.unlockRegion(nextRegionId)
     chunkManager!.onRegionUnlocked(nextRegionId)
     regionUnlockFX.showUnlock(nextRegionId)
+    // 게이트 실제 해제 시점에만 자연 레벨로 동기화 — gate 활성 동안 미리 threshold가 풀리지 않게.
+    progressSystem.recomputeLevel()
   }
 
   controller = new Controller()
