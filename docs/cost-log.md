@@ -15,13 +15,14 @@
 |------|-----------|-----------|-----------|-----------|------------|-------------------|------|
 | 2026-05-05 | _baseline_ | _baseline_ | — | — | — | E1·E3 부트스트랩 | `/usage` dismiss로 수치 미캡쳐 — ralph 종료 후 차이로 추정 예정 |
 | 2026-05-05 | ralph 1세션 | — | — | — | — | **Level 3 / ralph** — Wave 3 #1 색상 UI | 7 라운드, executor 4 / reviewer 2 (opus+sonnet) / cleaner 1. 자세한 사용량은 사용자가 `/cost`로 캡쳐 시 갱신 |
+| 2026-05-06 ~ 07 | Level 2 1세션 | — | — | — | — | **Level 2** — Wave 3 #2 정보 패널 + 게이트 캡 + playtest 후속 튜닝 | executor 2 (1차+fix) / reviewer 2 (1차 NEEDS FIX → 2차 APPROVED). reviewer 1차 적발 CRITICAL 1 + MEDIUM 1. playtest 후속 7커밋 (게이트 region 진화 4단계 포함). 최종 177 tests passed |
 
 ## 워크플로우별 누적 (주차 마감 시 채움)
 
 | 워크플로우 | 작업 건수 | 누적 토큰 | 적발 결함 (CRITICAL/HIGH) | 회귀 발생 | per-feature 평균 |
 |-----------|-----------|-----------|---------------------------|-----------|------------------|
 | Level 1 (직접 실행) | — | — | — | — | — |
-| Level 2 (writer + reviewer) | — | — | — | — | — |
+| Level 2 (writer + reviewer) | 1 (Wave 3 #2) | _측정 보류_ | CRITICAL 1 / HIGH 0 (1차 reviewer) | 3 (playtest 후속 게이트 진화 — 본 spec 외) | _측정 보류_ |
 | Level 3 (ralph 자율 루프) | 1 (Wave 3 #1) | _ralph 종료 후 측정 보류_ | CRITICAL 0 / HIGH 3 (1차 reviewer) | 0 (회귀 없음, 131 passed) | _측정 보류_ |
 
 ## 주차 결산
