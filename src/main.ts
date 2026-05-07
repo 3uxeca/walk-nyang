@@ -253,6 +253,18 @@ async function init() {
     return { id: regionForChunk(cx, cz), ...getRegionInfo(regionForChunk(cx, cz)) }
   }
 
+  // 게이트 region: 최상위 unlocked region 중 특산품 미완 + 다음 region 존재할 때 그 ID.
+  // 그 외엔 null. 플레이어 물리 위치와 무관하게 진행 상태만 본다.
+  function findGateRegionId(): number | null {
+    const unlocked = regionManager.getUnlockedRegions()
+    if (unlocked.length === 0) return null
+    let highest = unlocked[0]
+    for (const id of unlocked) if (id > highest) highest = id
+    if (!((highest + 1) in REGION_NAMES)) return null
+    if (progressSystem.getSpecialtyCount(highest) >= SPECIALTY_UNLOCK_THRESHOLD) return null
+    return highest
+  }
+
   const initialRegion = currentRegionInfo()
   let lastRegionId = initialRegion.id
 
@@ -292,13 +304,13 @@ async function init() {
   }
 
   itemSystem = new ItemSystem(scene, collectedItemIds, (id, type) => {
-    // 다음 마을 해제 게이트: 현재 지역의 특산품이 미완이면 레벨 게이지를 threshold에 캡.
-    // 일반 아이템 weight를 남은 칸(room)에 clamp하고 ProgressSystem 레벨업 루프도 건너뜀.
-    const riPre = currentRegionInfo()
-    const specialtyCountBefore = progressSystem.getSpecialtyCount(riPre.id)
-    const hasNextRegion = (riPre.id + 1) in REGION_NAMES
-    const isGated =
-      hasNextRegion && riPre.specialty != null && specialtyCountBefore < SPECIALTY_UNLOCK_THRESHOLD
+    // 다음 마을 해제 게이트: 최상위 unlocked region의 특산품 미완 + 다음 region 존재가 기준.
+    // 플레이어가 뒷마을로 돌아가도 게이트 상태는 동일하게 유지된다.
+    const gateRegionId = findGateRegionId()
+    const gateInfo = gateRegionId !== null ? REGION_NAMES[gateRegionId] : null
+    const specialtyCountBefore =
+      gateRegionId !== null ? progressSystem.getSpecialtyCount(gateRegionId) : SPECIALTY_UNLOCK_THRESHOLD
+    const isGated = gateRegionId !== null && gateInfo?.specialty != null
     let weight = ITEM_WEIGHT[type]
     if (isGated && weight > 0) {
       const room = Math.max(0, progressSystem.getNextLevelThreshold() - progressSystem.getTotalCollected())
@@ -337,14 +349,14 @@ async function init() {
     if (
       isGated &&
       ITEM_WEIGHT[type] > 0 &&
-      ri.specialty &&
+      gateInfo?.specialty &&
       progressSystem.getTotalCollected() >= progressSystem.getNextLevelThreshold()
     ) {
       const remaining = SPECIALTY_UNLOCK_THRESHOLD - specialtyCountBefore
       toast?.show(
-        `특산품 ${ri.specialty.emoji}을 ${remaining}개 더 모아서 다음 마을로 가자!`,
+        `특산품 ${gateInfo.specialty.emoji}을 ${remaining}개 더 모아서 다음 마을로 가자!`,
         undefined,
-        `gate-${ri.id}`,
+        `gate-${gateRegionId}`,
         2500,
         2200,
       )
@@ -539,8 +551,6 @@ async function init() {
     const curRegionId = regionForChunk(Math.floor(charPos.x / CHUNK_SIZE), Math.floor(charPos.z / CHUNK_SIZE))
     if (curRegionId !== lastRegionId) {
       lastRegionId = curRegionId
-      // 새 지역 진입 시 게이트로 동결됐던 레벨을 자연 레벨로 동기화 — threshold가 따라옴.
-      progressSystem.recomputeLevel()
       const info = getRegionInfo(curRegionId)
       hud!.update(
         progressSystem.getTotalCollected(),
