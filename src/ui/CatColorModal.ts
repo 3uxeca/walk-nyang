@@ -5,34 +5,31 @@ function injectStyles() {
   const s = document.createElement('style')
   s.id = COLOR_MODAL_STYLE_ID
   s.textContent = `
-    @keyframes w3d-ccm-fade-in {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    @keyframes w3d-ccm-card-in {
-      from { opacity: 0; transform: translateY(12px) scale(0.96); }
-      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    @keyframes w3d-ccm-card-up {
+      from { opacity: 0; transform: translateY(100%); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     .w3d-ccm-backdrop {
       position: fixed; inset: 0;
-      background: rgba(48, 32, 24, 0.55);
+      background: transparent;
       z-index: 9600;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: center;
-      padding: 24px;
-      animation: w3d-ccm-fade-in 0.2s ease both;
+      padding: 0;
       font-family: 'Jua', 'Nunito', 'Apple SD Gothic Neo', sans-serif;
+      pointer-events: auto;
     }
     .w3d-ccm-card {
       background: linear-gradient(180deg, #fff8ee 0%, #ffe6cf 100%);
-      border-radius: 22px;
-      padding: 28px 24px 22px;
-      max-width: 360px;
+      border-radius: 22px 22px 0 0;
+      padding: 22px 20px 24px;
+      padding-bottom: max(24px, env(safe-area-inset-bottom));
+      max-width: 480px;
       width: 100%;
-      box-shadow: 0 18px 40px rgba(120,70,30,0.25);
+      box-shadow: 0 -8px 28px rgba(120,70,30,0.28);
       text-align: center;
-      animation: w3d-ccm-card-in 0.26s cubic-bezier(.34,1.56,.64,1) both;
+      animation: w3d-ccm-card-up 0.28s cubic-bezier(.34,1.56,.64,1) both;
     }
     .w3d-ccm-title {
       color: #4a2c1a;
