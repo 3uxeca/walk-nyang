@@ -18,8 +18,14 @@ export class Character {
   private walkTime = 0
   private landTimer = 0
 
-  // Main fur material (procedural mode) — preserved for setFurColor
-  private furMat: THREE.MeshToonMaterial | null = null
+  // Fur material targets for setFurColor.
+  // Procedural: orangeFur (MeshToonMaterial) — .color tint로 직접 적용.
+  // GLTF: atlas baseColorTexture를 canvas로 swap (검은 fur 픽셀을 hex 색으로 매핑).
+  private furMats: Array<THREE.MeshToonMaterial | THREE.MeshStandardMaterial> = []
+  private atlasMaterials: THREE.MeshStandardMaterial[] = []
+  private atlasOriginalImage: HTMLImageElement | HTMLCanvasElement | ImageBitmap | null = null
+  private atlasSwapCanvas: HTMLCanvasElement | null = null
+  private atlasSwapTexture: THREE.CanvasTexture | null = null
 
   // GLTF animation (only used when GLTF model is available)
   private mixer: THREE.AnimationMixer | null = null
@@ -60,13 +66,32 @@ export class Character {
     const catScene = assets.clone('cat')
     catScene.scale.setScalar(CAT_GLTF_SCALE)
 
-    // Attach pink nose to body node so it follows body animation
+    // Attach pink nose to body node so it follows body animation.
     catScene.traverse(obj => {
       if (obj.name === 'body') {
         const noseMat = new THREE.MeshStandardMaterial({ color: 0xff88aa, roughness: 0.4 })
+        noseMat.name = 'nose-mat'
         const nose = new THREE.Mesh(new THREE.SphereGeometry(0.09, 8, 6), noseMat)
         nose.position.set(0, 0.58, 0.68)
         obj.add(nose)
+      }
+    })
+
+    // Wave 3 #1: Quaternius atlas 모델은 baseColorTexture로 색이 결정 — `.color.set` tint는
+    // atlas와 곱셈으로 작동해 검은 fur 픽셀이 변하지 않음. 대신 atlas image를 canvas로 swap.
+    catScene.traverse(child => {
+      const mesh = child as THREE.Mesh
+      if (!mesh.isMesh) return
+      const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material
+      if (!mat || !(mat as THREE.MeshStandardMaterial).color) return
+      const matAny = mat as THREE.MeshStandardMaterial & { name?: string }
+      if (matAny.name && matAny.name.toLowerCase().includes('nose')) return
+      const stdMat = mat as THREE.MeshStandardMaterial
+      if (stdMat.map && stdMat.map.image) {
+        if (this.atlasMaterials.indexOf(stdMat) === -1) this.atlasMaterials.push(stdMat)
+        if (!this.atlasOriginalImage) this.atlasOriginalImage = stdMat.map.image
+      } else {
+        if (this.furMats.indexOf(stdMat) === -1) this.furMats.push(stdMat)
       }
     })
 
@@ -141,7 +166,7 @@ export class Character {
   private buildProcedural() {
     const whiteFur  = new THREE.MeshToonMaterial({ color: 0xfff5e8 })
     const orangeFur = new THREE.MeshToonMaterial({ color: 0xff8c32 })
-    this.furMat = orangeFur
+    this.furMats.push(orangeFur)
     const darkFur   = new THREE.MeshToonMaterial({ color: 0x272727 })
     const bellyMat  = new THREE.MeshToonMaterial({ color: 0xfff0e0 })
     const earInner  = new THREE.MeshToonMaterial({ color: 0xffb3c6 })
@@ -320,18 +345,77 @@ export class Character {
 
   private static readonly HEX_RE = /^#[0-9a-fA-F]{6}$/
 
-  /**
-   * furMat이 존재하는 경우(procedural 모드)에만 true를 반환합니다.
-   * GLTF 모드에서는 false — 향후 GLTF body mesh 추출로 지원 예정 (TODO: Wave 3 #3 의상).
-   */
   public supportsFurColor(): boolean {
-    return this.furMat !== null
+    return this.furMats.length > 0 || this.atlasMaterials.length > 0
   }
 
   public setFurColor(hex: string): void {
     if (!Character.HEX_RE.test(hex)) return
-    if (!this.furMat) return
-    this.furMat.color.set(hex)
+    for (const mat of this.furMats) {
+      mat.color.set(hex)
+    }
+    if (this.atlasMaterials.length > 0) {
+      this.applyAtlasSwap(hex)
+    }
+  }
+
+  // GLTF atlas baseColorTexture에서 검은 fur 픽셀(max(R,G,B) < 80)을 hex 색으로 매핑한
+  // 새 CanvasTexture를 생성해 모든 atlas material의 .map에 적용. 명암 일부 보존.
+  private applyAtlasSwap(hex: string): void {
+    if (!this.atlasOriginalImage) return
+    const img = this.atlasOriginalImage
+    const w = (img as HTMLImageElement).naturalWidth || (img as HTMLCanvasElement).width || 0
+    const h = (img as HTMLImageElement).naturalHeight || (img as HTMLCanvasElement).height || 0
+    if (w === 0 || h === 0) return
+
+    if (!this.atlasSwapCanvas) {
+      this.atlasSwapCanvas = document.createElement('canvas')
+      this.atlasSwapCanvas.width = w
+      this.atlasSwapCanvas.height = h
+    }
+    const ctx = this.atlasSwapCanvas.getContext('2d')
+    if (!ctx) return
+    ctx.clearRect(0, 0, w, h)
+    ctx.drawImage(img as CanvasImageSource, 0, 0)
+
+    const data = ctx.getImageData(0, 0, w, h)
+    const tr = parseInt(hex.slice(1, 3), 16)
+    const tg = parseInt(hex.slice(3, 5), 16)
+    const tb = parseInt(hex.slice(5, 7), 16)
+    // FUR_LOW 미만(진짜 검은 동공/디테일)은 보존, FUR_LOW~FUR_HIGH(어두운 fur)는 hex로 swap.
+    const FUR_LOW = 10
+    const FUR_HIGH = 100
+    for (let i = 0; i < data.data.length; i += 4) {
+      const pr = data.data[i]
+      const pg = data.data[i + 1]
+      const pb = data.data[i + 2]
+      const lum = Math.max(pr, pg, pb)
+      if (lum >= FUR_LOW && lum < FUR_HIGH) {
+        data.data[i] = tr
+        data.data[i + 1] = tg
+        data.data[i + 2] = tb
+      }
+    }
+    ctx.putImageData(data, 0, 0)
+
+    const firstMap = this.atlasMaterials[0].map
+    if (!this.atlasSwapTexture) {
+      this.atlasSwapTexture = new THREE.CanvasTexture(this.atlasSwapCanvas)
+      this.atlasSwapTexture.flipY = firstMap?.flipY ?? false
+      this.atlasSwapTexture.colorSpace = firstMap?.colorSpace ?? THREE.SRGBColorSpace
+      this.atlasSwapTexture.wrapS = firstMap?.wrapS ?? THREE.ClampToEdgeWrapping
+      this.atlasSwapTexture.wrapT = firstMap?.wrapT ?? THREE.ClampToEdgeWrapping
+    } else {
+      this.atlasSwapTexture.needsUpdate = true
+    }
+
+    for (const m of this.atlasMaterials) {
+      if (m.map !== this.atlasSwapTexture) {
+        m.map = this.atlasSwapTexture
+        m.color.set(0xffffff)
+        m.needsUpdate = true
+      }
+    }
   }
 
   // ── Shared update ────────────────────────────────────────────
