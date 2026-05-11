@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 export default defineConfig(({ mode }) => ({
   base: mode === 'production' ? '/walk-nyang/' : '/',
   server: {
-    port: 3000,
+    port: 3900,
   },
   build: {
     // three.js를 별도 vendor 청크로 분리 — 게임 코드만 변경 시 three 청크는 캐시 유지
